@@ -25,7 +25,9 @@ export default function RegistrationList() {
 
   const fetchList = async () => {
     try {
-      const res = await fetch("https://api.sjtechsol.com/api/cashier/registrations");
+      const res = await fetch(
+        "https://api.sjtechsol.com/api/cashier/registrations"
+      );
       const result = await res.json();
       if (result.success) setRecords(result.data);
     } catch {
@@ -34,12 +36,16 @@ export default function RegistrationList() {
   };
 
   const deleteRecord = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this registration?")) return;
+    if (!window.confirm("Are you sure you want to delete this registration?"))
+      return;
 
     try {
-      const res = await fetch(`https://api.sjtechsol.com/api/cashier/registrations/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `https://api.sjtechsol.com/api/cashier/registrations/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       const result = await res.json();
 
@@ -117,24 +123,50 @@ export default function RegistrationList() {
       Region: item.region,
       Email: item.email,
       Name: item.name,
+      Title: item.title,
+      Full_Name: item.fullName,
+      Surname: item.surname,
       Gender: item.gender,
       Age: item.age,
       Mobile: item.mobile,
+      Marital: item.maritalStatus,
+      DTC_Attended: item.dtcAttended,
+      DTC_When: item.dtcWhen,
+      DTC_Where: item.dtcWhere,
+      District: item.district,
+      ICEU_EGF: item.iceuEgf,
+      Group_Type: item.groupType,
+      Spouse_Attending: item.spouseAttending,
+      Spouse_Name: item.spouseName,
+      Child_Under_10_Count: item.childBelow10Count,
+      Child_Under_10_Names: item.childBelow10Names,
+      Child_10_14_Count: item.child10to14Count,
+      Child_10_14_Names: item.child10to14Names,
+      Total_Family_Members: item.totalFamilyMembers,
+      Delegates_Other: item.delegatesOther,
       Recommended_Role: item.recommendedByRole,
-      Recommender: item.recommenderContact,
-      Amount: item.amountPaid,
+      Recommender_Contact: item.recommenderContact,
+      Amount_Paid: item.amountPaid,
       Payment_Mode: item.paymentMode2,
-      Status: getRegStatus(item),
+      Date_of_Payment: item.dateOfPayment,
+      Transaction_ID: item.transactionId,
+      Screenshot_URL: item.paymentScreenshot,
+      Arrival_Day: item.arrivalDay,
+      Arrival_Time: item.arrivalTime,
+      TotalAmount: item.totalAmount,
+      Balance: item.balance,
+      Payment_Status: item.status,
+      Registration_Status: item.registrationStatus,
+      Created_At: item.createdAt,
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Registrations");
-
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const file = new Blob([excelBuffer], { type: "application/octet-stream" });
-
-    saveAs(file, `registrations_${Date.now()}.xlsx`);
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Registrations");
+    saveAs(
+      new Blob([XLSX.write(wb, { bookType: "xlsx", type: "array" })]),
+      `registrations_${Date.now()}.xlsx`
+    );
   };
 
   return (
@@ -146,7 +178,10 @@ export default function RegistrationList() {
         <h4 className="fw-bold">Registration Approval List</h4>
 
         <div className="d-flex gap-2">
-          <button className="btn btn-success btn-sm fw-bold" onClick={downloadExcel}>
+          <button
+            className="btn btn-success btn-sm fw-bold"
+            onClick={downloadExcel}
+          >
             📥 Download Excel
           </button>
 
@@ -202,88 +237,147 @@ export default function RegistrationList() {
               <th>Gender</th>
               <th>Age</th>
               <th>Mobile</th>
+              <th>Marital</th>
+              <th>DTC Attended</th>
+              <th>DTC When</th>
+              <th>DTC Where</th>
+              <th>District</th>
+              <th>ICEU/EGF</th>
+              <th>Group Type</th>
+              <th>Spouse Attending</th>
+              <th>Spouse Name</th>
+              <th>Child 10 Count</th>
+              <th>Child 10 Names</th>
+              <th>Child 10-14 Count</th>
+              <th>Child 10-14 Names</th>
+              <th>Total Family Members</th>
+              <th>Delegates Other</th>
+              {/* Payment Related & Recommender */}
               <th>Recommended Role</th>
-              <th>Recommender</th>
-              <th>Amount</th>
-              <th>Mode</th>
-              <th>Status</th>
+              <th>Recommender Contact</th> {/* <--- FIXED */}
+              <th>Amount Paid</th>
+              <th>Payment Mode</th>
+              <th>Date Payment</th>
+              <th>Transaction ID</th>
+              <th>Screenshot</th>
+              {/* Arrival */}
+              <th>Arrival Day</th>
+              <th>Arrival Time</th>
+              {/* Calculation & Status */}
+              <th>Total Amount</th>
+              <th>Balance</th>
+              <th>Payment Status</th>
+              <th>Registration Status</th>
+              <th>Created At</th>
               <th>Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredRecords.length ? (
-              filteredRecords.map((item, i) => {
-                const status = getRegStatus(item);
-                const emailKey = item.email?.trim().toLowerCase();
-                const nameKey = item.name?.trim().toLowerCase();
-                const isDuplicate = duplicateMap[emailKey] > 1 || duplicateMap[nameKey] > 1;
+            {filteredRecords.map((item, i) => {
+              const emailDup = duplicateMap[item.email?.toLowerCase()] > 1;
+              const nameDup = duplicateMap[item.name?.toLowerCase()] > 1;
 
-                return (
-                  <tr key={item._id} style={{ background: isDuplicate ? "#FFF29A" : "white" }}>
-                    <td>{i + 1}</td>
-                    <td>{item.region}</td>
+              return (
+                <tr
+                  key={item._id}
+                  style={{
+                    background: emailDup || nameDup ? "#FFF5A1" : "white",
+                  }}
+                >
+                  <td>{i + 1}</td>
+                  <td>{item.region}</td>
 
-                    <td>
-                      {item.email}
-                      {duplicateMap[emailKey] > 1 && (
-                        <span className="badge bg-warning text-dark ms-1">Duplicate</span>
-                      )}
-                    </td>
+                  <td>
+                    {item.email}
+                    {emailDup && (
+                      <span className="badge bg-warning text-dark ms-1">
+                        Duplicate
+                      </span>
+                    )}
+                  </td>
 
-                    <td>
-                      {item.name}
-                      {duplicateMap[nameKey] > 1 && (
-                        <span className="badge bg-warning text-dark ms-1">Duplicate</span>
-                      )}
-                    </td>
+                  <td>
+                    {item.name}
+                    {nameDup && (
+                      <span className="badge bg-warning text-dark ms-1">
+                        Duplicate
+                      </span>
+                    )}
+                  </td>
 
-                    <td>{item.gender || "-"}</td>
-                    <td>{item.age}</td>
-                    <td>{item.mobile}</td>
-                    <td>{item.recommendedByRole}</td>
-                    <td>{item.recommenderContact}</td>
-                    <td>{item.amountPaid}</td>
-                    <td>{item.paymentMode2}</td>
+                  <td>{item.gender}</td>
+                  <td>{item.age}</td>
+                  <td>{item.mobile}</td>
+                  <td>{item.maritalStatus}</td>
+                  <td>{item.dtcAttended}</td>
+                  <td>{item.dtcWhen}</td>
+                  <td>{item.dtcWhere}</td>
+                  <td>{item.district}</td>
+                  <td>{item.iceuEgf}</td>
+                  <td>{item.groupType}</td>
+                  <td>{item.spouseAttending}</td>
+                  <td>{item.spouseName}</td>
+                  <td>{item.childBelow10Count}</td>
+                  <td>{item.childBelow10Names}</td>
+                  <td>{item.child10to14Count}</td>
+                  <td>{item.child10to14Names}</td>
+                  <td>{item.totalFamilyMembers}</td>
+                  <td>{item.delegatesOther}</td>
 
-                    <td className="fw-bold">
-                      {status === "approved" && <span className="text-success">Approved</span>}
-                      {status === "rejected" && <span className="text-danger">Rejected</span>}
-                      {status === "pending" && <span className="text-warning">Pending</span>}
-                    </td>
+                  <td>{item.recommendedByRole}</td>
+                  <td>{item.recommenderContact}</td>
 
-                    <td>
-                      <div className="d-flex gap-1 justify-content-center flex-wrap">
-                        {status === "pending" && (
-                          <>
-                            <button className="btn btn-success btn-sm"
-                              onClick={() => updateStatus(item._id, "approved")}
-                            >Approve</button>
+                  <td>{item.amountPaid}</td>
+                  <td>{item.paymentMode2}</td>
+                  <td>{item.dateOfPayment}</td>
+                  <td>{item.transactionId}</td>
 
-                            <button className="btn btn-danger btn-sm"
-                              onClick={() => updateStatus(item._id, "rejected")}
-                            >Reject</button>
-                          </>
-                        )}
+                  <td>
+                    {item.paymentScreenshot ? (
+                      <a href={item.paymentScreenshot} target="_blank">
+                        View
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
 
+                  <td>{item.arrivalDay}</td>
+                  <td>{item.arrivalTime}</td>
+                  <td>{item.totalAmount}</td>
+                  <td>{item.balance}</td>
+                  <td>{item.status}</td>
+                  <td>{item.registrationStatus}</td>
+                  <td>{new Date(item.createdAt).toLocaleString()}</td>
+
+                  <td>
+                    {getRegStatus(item) === "pending" && (
+                      <>
                         <button
-                          className="btn btn-outline-danger btn-sm"
-                          onClick={() => deleteRecord(item._id)}
+                          className="btn btn-success btn-sm"
+                          onClick={() => updateStatus(item._id, "approved")}
                         >
-                          🗑 Delete
+                          Approve
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="12" className="text-danger fw-bold">
-                  No Records Found
-                </td>
-              </tr>
-            )}
+                        <button
+                          className="btn btn-danger btn-sm ms-1"
+                          onClick={() => updateStatus(item._id, "rejected")}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    <button
+                      className="btn btn-outline-danger btn-sm ms-1"
+                      onClick={() => deleteRecord(item._id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
