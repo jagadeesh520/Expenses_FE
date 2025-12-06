@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function RegistrationList() {
@@ -9,7 +11,6 @@ export default function RegistrationList() {
   const [filterStatus, setFilterStatus] = useState("all");
   const navigate = useNavigate();
 
-  // 🔹 Get final status safely
   const getRegStatus = (item) => {
     if (item.registrationStatus) return item.registrationStatus;
     const lastTx = item.transactions?.[item.transactions.length - 1]?.status;
@@ -32,24 +33,71 @@ export default function RegistrationList() {
     }
   };
 
-  const updateStatus = async (id, status) => {
+  const deleteRecord = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this registration?")) return;
+
     try {
-      const res = await fetch(`https://api.sjtechsol.com/api/cashier/registrations/status/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+      const res = await fetch(`https://api.sjtechsol.com/api/cashier/registrations/${id}`, {
+        method: "DELETE",
       });
 
-      if (res.ok) {
-        toast.success(`Updated to ${status.toUpperCase()}`);
+      const result = await res.json();
+
+      if (result.success) {
+        toast.success("Record deleted successfully!");
         fetchList();
-      } else toast.error("Action failed");
-    } catch {
-      toast.error("Server Error");
+      } else {
+        toast.error(result.error || "Delete failed");
+      }
+    } catch (err) {
+      toast.error("Server Error while deleting");
     }
   };
 
-  // Search + Filter
+  const updateStatus = async (id, action) => {
+    try {
+      let reason = "";
+      if (action === "rejected") {
+        reason = window.prompt("Please enter a rejection reason:", "");
+        if (!reason.trim()) return toast.info("Rejection cancelled");
+      }
+
+      const endpoint =
+        action === "approved"
+          ? `https://api.sjtechsol.com/api/cashier/registrations/${id}/approve`
+          : `https://api.sjtechsol.com/api/cashier/registrations/${id}/reject`;
+
+      const registrarData = localStorage.getItem("registrarData");
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          approvedBy: registrarData || "Registrar",
+          rejectedBy: registrarData || "Registrar",
+          ...(action === "rejected" && { reason }),
+        }),
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        toast.success(`Status updated successfully!`);
+        fetchList();
+      } else toast.error("Update failed");
+    } catch (err) {
+      toast.error("Server error");
+    }
+  };
+
+  // ---------------- Highlight Duplicates by EMAIL or NAME ----------------
+  const duplicateMap = {};
+  records.forEach((r) => {
+    const emailKey = r.email?.trim().toLowerCase();
+    const nameKey = r.name?.trim().toLowerCase();
+    if (emailKey) duplicateMap[emailKey] = (duplicateMap[emailKey] || 0) + 1;
+    if (nameKey) duplicateMap[nameKey] = (duplicateMap[nameKey] || 0) + 1;
+  });
+
   const filteredRecords = records.filter((item) => {
     const s = search.toLowerCase();
     const status = getRegStatus(item);
@@ -62,30 +110,63 @@ export default function RegistrationList() {
     );
   });
 
+  // ---------------- Excel Export ----------------
+  const downloadExcel = () => {
+    const data = filteredRecords.map((item, index) => ({
+      S_No: index + 1,
+      Region: item.region,
+      Email: item.email,
+      Name: item.name,
+      Gender: item.gender,
+      Age: item.age,
+      Mobile: item.mobile,
+      Recommended_Role: item.recommendedByRole,
+      Recommender: item.recommenderContact,
+      Amount: item.amountPaid,
+      Payment_Mode: item.paymentMode2,
+      Status: getRegStatus(item),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registrations");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const file = new Blob([excelBuffer], { type: "application/octet-stream" });
+
+    saveAs(file, `registrations_${Date.now()}.xlsx`);
+  };
+
   return (
     <div className="container-fluid mt-3">
       <ToastContainer position="top-right" autoClose={2000} />
 
-      {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      {/* Header + Excel Button */}
+      <div className="d-flex justify-content-between mb-3 flex-wrap gap-2">
         <h4 className="fw-bold">Registration Approval List</h4>
 
-        <button
-          className="btn btn-danger fw-bold btn-sm px-3"
-          onClick={() => {
-            localStorage.removeItem("registrarToken");
-            localStorage.removeItem("registrarData");
-            toast.success("Logged out!");
-            setTimeout(() => navigate("/"), 600);
-          }}
-        >
-          Logout
-        </button>
+        <div className="d-flex gap-2">
+          <button className="btn btn-success btn-sm fw-bold" onClick={downloadExcel}>
+            📥 Download Excel
+          </button>
+
+          <button
+            className="btn btn-danger fw-bold btn-sm"
+            onClick={() => {
+              localStorage.removeItem("registrarToken");
+              localStorage.removeItem("registrarData");
+              toast.success("Logged out");
+              setTimeout(() => navigate("/"), 500);
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
-      {/* Search + Filter */}
+      {/* Search and Filter */}
       <div className="row g-2 mb-3">
-        <div className="col-12 col-md-4">
+        <div className="col-md-4">
           <input
             type="text"
             className="form-control"
@@ -95,26 +176,36 @@ export default function RegistrationList() {
           />
         </div>
 
-        <div className="col-12 col-md-3">
-          <select className="form-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+        <div className="col-md-3">
+          <select
+            className="form-select"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
-            <option value="declined">Declined</option>
+            <option value="rejected">Rejected</option>
           </select>
         </div>
       </div>
 
       {/* Table */}
       <div className="table-responsive">
-        <table className="table table-bordered table-striped align-middle text-center table-sm">
+        <table className="table table-bordered table-striped text-center table-sm">
           <thead className="table-dark">
             <tr>
               <th>S.No</th>
               <th>Region</th>
               <th>Email</th>
               <th>Name</th>
+              <th>Gender</th>
+              <th>Age</th>
               <th>Mobile</th>
+              <th>Recommended Role</th>
+              <th>Recommender</th>
+              <th>Amount</th>
+              <th>Mode</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -124,49 +215,63 @@ export default function RegistrationList() {
             {filteredRecords.length ? (
               filteredRecords.map((item, i) => {
                 const status = getRegStatus(item);
+                const emailKey = item.email?.trim().toLowerCase();
+                const nameKey = item.name?.trim().toLowerCase();
+                const isDuplicate = duplicateMap[emailKey] > 1 || duplicateMap[nameKey] > 1;
+
                 return (
-                  <tr key={item._id}>
+                  <tr key={item._id} style={{ background: isDuplicate ? "#FFF29A" : "white" }}>
                     <td>{i + 1}</td>
                     <td>{item.region}</td>
-                    <td className="text-break">{item.email}</td>
-                    <td>{item.name}</td>
-                    <td>{item.mobile}</td>
 
                     <td>
-                      <span
-                        className={`fw-bold ${
-                          status === "approved" ? "text-success" : status === "declined" ? "text-danger" : "text-warning"
-                        }`}
-                      >
-                        {status}
-                      </span>
+                      {item.email}
+                      {duplicateMap[emailKey] > 1 && (
+                        <span className="badge bg-warning text-dark ms-1">Duplicate</span>
+                      )}
+                    </td>
+
+                    <td>
+                      {item.name}
+                      {duplicateMap[nameKey] > 1 && (
+                        <span className="badge bg-warning text-dark ms-1">Duplicate</span>
+                      )}
+                    </td>
+
+                    <td>{item.gender || "-"}</td>
+                    <td>{item.age}</td>
+                    <td>{item.mobile}</td>
+                    <td>{item.recommendedByRole}</td>
+                    <td>{item.recommenderContact}</td>
+                    <td>{item.amountPaid}</td>
+                    <td>{item.paymentMode2}</td>
+
+                    <td className="fw-bold">
+                      {status === "approved" && <span className="text-success">Approved</span>}
+                      {status === "rejected" && <span className="text-danger">Rejected</span>}
+                      {status === "pending" && <span className="text-warning">Pending</span>}
                     </td>
 
                     <td>
                       <div className="d-flex gap-1 justify-content-center flex-wrap">
-
-                        {status === "approved" && (
-                          <button className="btn btn-success rounded-circle btn-sm" disabled>
-                            ✓
-                          </button>
-                        )}
-
-                        {status === "declined" && (
-                          <button className="btn btn-danger rounded-circle btn-sm" disabled>
-                            ✕
-                          </button>
-                        )}
-
                         {status === "pending" && (
                           <>
-                            <button className="btn btn-success btn-sm" onClick={() => updateStatus(item._id, "approved")}>
-                              Approve
-                            </button>
-                            <button className="btn btn-danger btn-sm" onClick={() => updateStatus(item._id, "declined")}>
-                              Decline
-                            </button>
+                            <button className="btn btn-success btn-sm"
+                              onClick={() => updateStatus(item._id, "approved")}
+                            >Approve</button>
+
+                            <button className="btn btn-danger btn-sm"
+                              onClick={() => updateStatus(item._id, "rejected")}
+                            >Reject</button>
                           </>
                         )}
+
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => deleteRecord(item._id)}
+                        >
+                          🗑 Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -174,7 +279,7 @@ export default function RegistrationList() {
               })
             ) : (
               <tr>
-                <td colSpan="10" className="text-danger fw-bold">
+                <td colSpan="12" className="text-danger fw-bold">
                   No Records Found
                 </td>
               </tr>
@@ -182,16 +287,6 @@ export default function RegistrationList() {
           </tbody>
         </table>
       </div>
-
-      {/* Mobile Styling */}
-      <style>{`
-        @media(max-width: 600px){
-          table th, table td { font-size: 12px; padding: 6px; }
-          h4{ font-size: 18px; }
-          .btn-sm { font-size: 11px; padding: 3px 7px; }
-          .rounded-circle{ width:28px;height:28px;font-size:14px!important; }
-        }
-      `}</style>
     </div>
   );
 }

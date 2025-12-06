@@ -7,7 +7,9 @@ import EastRegistration from "./EastRegistration";
 import WestRegistration from "./WestRegistration";
 import AdminDashboard from "./AdminDashboard";
 import RegistrationList from "./RegistrationList";
-import RegistrarLogin from "./RegistrarLogin";    // <<< IMPORTANT ADD
+import RegistrarLogin from "./RegistrarLogin"; 
+import RegistrationSuccess from "./RegistrationSuccess"; 
+   // <<< IMPORTANT ADD
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
 
         {/* Admin Pages */}
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/registration-success" element={<RegistrationSuccess />} />
 
         {/* Registrar Pages */}
         <Route path="/registrations" element={<RegistrationList />} /> {/* Approval page */}

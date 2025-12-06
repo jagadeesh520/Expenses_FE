@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function AdminDashboard() {
   const [records, setRecords] = useState([]);
@@ -18,25 +20,22 @@ export default function AdminDashboard() {
     navigate("/");
   };
 
- const fetchPayments = async () => {
-  try {
-    const res = await fetch("https://api.sjtechsol.com/api/cashier/list");
-    const result = await res.json();
+  const fetchPayments = async () => {
+    try {
+      const res = await fetch("https://api.sjtechsol.com/api/cashier/list");
+      const result = await res.json();
 
-    if (result.success) {
-      const unique = result.data.filter(
-        (obj, index, self) =>
-          index === self.findIndex(
-            (t) => t.email === obj.email && t.name === obj.name
-          )
-      );
-      setRecords(unique);
+      if (result.success) {
+        const unique = result.data.filter(
+          (obj, index, self) =>
+            index === self.findIndex((t) => t.email === obj.email && t.name === obj.name)
+        );
+        setRecords(unique);
+      }
+    } catch (err) {
+      console.log("Error fetching list:", err);
     }
-  } catch (err) {
-    console.log("Error fetching list:", err);
-  }
-};
-
+  };
 
   const filteredRecords = records.filter((item) =>
     filterRegion === "all"
@@ -57,17 +56,54 @@ export default function AdminDashboard() {
     .filter((r) => r.region?.toLowerCase().includes("west"))
     .reduce((sum, r) => sum + Number(r.amountPaid || 0), 0);
 
+  // ---------------- Excel Export ----------------
+  const downloadExcel = () => {
+    const data = filteredRecords.map((item, index) => ({
+      S_No: index + 1,
+      Region: item.region,
+      Email: item.email,
+      Name: item.name,
+      Gender: item.gender,
+      Age: item.age,
+      Mobile: item.mobile,
+      Recommended_Role: item.recommendedByRole,
+      Recommender_Contact: item.recommenderContact,
+      Amount_Paid: item.amountPaid,
+      Payment_Mode: item.paymentMode2,
+      Date: item.dateOfPayment,
+      Transaction_ID: item.transactionId,
+      Total_Amount: item.totalAmount,
+      Status: item.status,
+      Created_At: new Date(item.createdAt).toLocaleString(),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Payments");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const file = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(file, `payments_${Date.now()}.xlsx`);
+  };
+
   return (
     <div className="container-fluid mt-4">
-      {/* Header with Back & Logout */}
+
+      {/* Header */}
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <h3 className="fw-bold m-0 text-center flex-grow-1">
           Admin Payment Dashboard
         </h3>
 
-        <button className="btn btn-danger fw-bold px-4" onClick={handleLogout}>
-          Logout
-        </button>
+        <div className="d-flex gap-2">
+          <button className="btn btn-success fw-bold" onClick={downloadExcel}>
+            📥 Download Excel
+          </button>
+
+          <button className="btn btn-danger fw-bold px-4" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -90,10 +126,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Table */}
-      <div
-        className="table-responsive"
-        style={{ maxHeight: "80vh", overflowY: "scroll" }}
-      >
+      <div className="table-responsive" style={{ maxHeight: "80vh", overflowY: "scroll" }}>
         <table className="table table-bordered table-striped table-sm text-center">
           <thead className="table-dark">
             <tr>
@@ -137,24 +170,14 @@ export default function AdminDashboard() {
 
                   <td>
                     {item.paymentScreenshot && (
-                      <a
-                        href={item.paymentScreenshot}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      <a href={item.paymentScreenshot} target="_blank" rel="noreferrer">
                         View
                       </a>
                     )}
                   </td>
 
                   <td>{item.totalAmount ?? 0}</td>
-                  <td
-                    className={
-                      item.status === "paid"
-                        ? "text-success fw-bold"
-                        : "text-danger fw-bold"
-                    }
-                  >
+                  <td className={item.status === "paid" ? "text-success fw-bold" : "text-danger fw-bold"}>
                     {item.status}
                   </td>
                   <td>{new Date(item.createdAt).toLocaleString()}</td>
@@ -162,16 +185,13 @@ export default function AdminDashboard() {
               ))
             ) : (
               <tr>
-                <td colSpan="40" className="text-danger fw-bold">
-                  No Records Found
-                </td>
+                <td colSpan="40" className="text-danger fw-bold">No Records Found</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Responsive Fix */}
       <style>{`
         @media(max-width:768px){
           table{ font-size:12px; }
