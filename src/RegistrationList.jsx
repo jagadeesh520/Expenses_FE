@@ -264,8 +264,7 @@ export default function RegistrationList() {
               <th>Arrival Day</th>
               <th>Arrival Time</th>
               {/* Calculation & Status */}
-              <th>Total Amount</th>
-              <th>Balance</th>
+              <th>Balance Amount</th>
               <th>Payment Status</th>
               <th>Registration Status</th>
               <th>Created At</th>
@@ -346,7 +345,6 @@ export default function RegistrationList() {
                   <td>{item.arrivalDay}</td>
                   <td>{item.arrivalTime}</td>
                   <td>{item.totalAmount}</td>
-                  <td>{item.balance}</td>
                   <td>{item.status}</td>
                   <td>{item.registrationStatus}</td>
                   <td>{new Date(item.createdAt).toLocaleString()}</td>
