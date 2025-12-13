@@ -34,6 +34,24 @@ export default function RegistrationList() {
       toast.error("Failed to load registrations");
     }
   };
+  const viewScreenshot = async (id) => {
+    try {
+      const res = await fetch(
+        `https://api.sjtechsol.com/api/cashier/registrations/${id}/screenshot`
+      );
+
+      if (!res.ok) {
+        alert("Unable to load screenshot");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (err) {
+      alert("Error loading screenshot");
+    }
+  };
 
   const deleteRecord = async (id) => {
     if (!window.confirm("Are you sure you want to delete this registration?"))
@@ -334,9 +352,12 @@ export default function RegistrationList() {
 
                   <td>
                     {item.paymentScreenshot ? (
-                      <a href={item.paymentScreenshot} target="_blank">
+                      <button
+                        className="btn btn-link btn-sm"
+                        onClick={() => viewScreenshot(item._id)}
+                      >
                         View
-                      </a>
+                      </button>
                     ) : (
                       "-"
                     )}
