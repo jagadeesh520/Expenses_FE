@@ -8,7 +8,7 @@ export default function RegistrationList() {
   const [records, setRecords] = useState([]);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [registrarRegion, setRegistrarRegion] = useState(null);
+  const [filterRegion, setFilterRegion] = useState("all"); // Filter for region dropdown
   const navigate = useNavigate();
 
   // 🔹 Get final status safely
@@ -22,66 +22,18 @@ export default function RegistrationList() {
     const token = localStorage.getItem("registrarToken");
     if (!token) return navigate("/registrar-login");
     
-    // Get registrar's region from stored data
-    const registrarData = localStorage.getItem("registrarData");
-    let region = null;
-    if (registrarData) {
-      try {
-        const user = JSON.parse(registrarData);
-        if (user.region) {
-          region = user.region;
-          setRegistrarRegion(region);
-        }
-      } catch (e) {
-        console.error("Error parsing registrar data:", e);
-      }
-    }
-    
-    fetchList(region);
+    // Load all registrations (both regions)
+    fetchList();
   }, []);
 
-  const fetchList = async (region = null) => {
+  const fetchList = async () => {
     try {
-      // Use provided region or get from localStorage
-      if (!region) {
-        const registrarData = localStorage.getItem("registrarData");
-        if (registrarData) {
-          try {
-            const user = JSON.parse(registrarData);
-            if (user.region) {
-              region = user.region;
-              setRegistrarRegion(region);
-            }
-          } catch (e) {
-            console.error("Error parsing registrar data:", e);
-          }
-        }
-      }
-      
-      // Build query parameter for region filtering
-      let regionFilter = "";
-      if (region) {
-        regionFilter = `?region=${encodeURIComponent(region)}`;
-        console.log("Fetching registrations for region:", region);
-      }
-      
-      // Fetch registrations filtered by registrar's region
-      const res = await fetch(API_ENDPOINTS.REGISTRATIONS + regionFilter);
+      // Fetch all registrations (both regions)
+      const res = await fetch(API_ENDPOINTS.REGISTRATIONS);
       const result = await res.json();
       if (result.success) {
         console.log(`Received ${result.data.length} total registrations from API`);
-        
-        // Additional client-side filter as backup (exact match with trim)
-        let filteredData = result.data;
-        if (region) {
-          filteredData = result.data.filter(item => {
-            const itemRegion = (item.region || "").trim();
-            const targetRegion = region.trim();
-            return itemRegion === targetRegion;
-          });
-          console.log(`Filtered to ${filteredData.length} registrations for region: ${region}`);
-        }
-        setRecords(filteredData);
+        setRecords(result.data);
       }
     } catch (err) {
       console.error("Error fetching registrations:", err);
@@ -119,7 +71,7 @@ export default function RegistrationList() {
       const result = await res.json();
       if (res.ok && result.success) {
         toast.success(`Registration ${action === "approved" ? "approved" : "rejected"} successfully! Email sent.`);
-        fetchList(registrarRegion);
+        fetchList();
       } else {
         toast.error(result.error || "Action failed");
       }
@@ -129,26 +81,33 @@ export default function RegistrationList() {
     }
   };
 
-  // Search + Filter (with region filtering as backup)
+  // Search + Filter with region and status filtering
   const filteredRecords = records.filter((item) => {
-    // Filter by registrar's region (backup check with exact match)
-    if (registrarRegion) {
+    // Filter by selected region
+    if (filterRegion !== "all") {
       const itemRegion = (item.region || "").trim();
-      const targetRegion = registrarRegion.trim();
+      const targetRegion = filterRegion.trim();
       if (itemRegion !== targetRegion) {
         return false;
       }
     }
     
+    // Filter by search term
     const s = search.toLowerCase();
-    const status = getRegStatus(item);
-    return (
+    const matchesSearch = 
       (item.name?.toLowerCase().includes(s) ||
         item.email?.toLowerCase().includes(s) ||
         item.mobile?.includes(search) ||
-        item.region?.toLowerCase().includes(s)) &&
-      (filterStatus === "all" || filterStatus === status)
-    );
+        item.region?.toLowerCase().includes(s) ||
+        item.uniqueId?.toLowerCase().includes(s) ||
+        item.district?.toLowerCase().includes(s) ||
+        item.groupType?.toLowerCase().includes(s));
+    
+    // Filter by status
+    const status = getRegStatus(item);
+    const matchesStatus = (filterStatus === "all" || filterStatus === status);
+    
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -159,7 +118,8 @@ export default function RegistrationList() {
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h4 className="fw-bold">
           Registration Approval List
-          {registrarRegion && <span className="text-primary ms-2">({registrarRegion})</span>}
+          {filterRegion !== "all" && <span className="text-primary ms-2">({filterRegion})</span>}
+          {filterRegion === "all" && <span className="text-info ms-2">(All Regions)</span>}
         </h4>
 
         <div className="d-flex gap-2">
@@ -195,10 +155,18 @@ export default function RegistrationList() {
           <input
             type="text"
             className="form-control"
-            placeholder="Search Name / Email / Mobile / Region"
+            placeholder="Search Name / Email / Mobile / Region / ID / District"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+
+        <div className="col-12 col-md-3">
+          <select className="form-select" value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)}>
+            <option value="all">All Regions</option>
+            <option value="East Rayalaseema">East Rayalaseema</option>
+            <option value="West Rayalaseema">West Rayalaseema</option>
+          </select>
         </div>
 
         <div className="col-12 col-md-3">
@@ -251,9 +219,7 @@ export default function RegistrationList() {
               <th style={{ minWidth: "120px" }}>Other Delegates</th>
               <th style={{ minWidth: "120px" }}>Arrival Day</th>
               <th style={{ minWidth: "120px" }}>Arrival Time</th>
-              <th style={{ minWidth: "120px" }}>Total Amount</th>
               <th style={{ minWidth: "120px" }}>Amount Paid</th>
-              <th style={{ minWidth: "120px" }}>Balance</th>
               <th style={{ minWidth: "100px" }}>Payment Mode</th>
               <th style={{ minWidth: "120px" }}>Payment Date</th>
               <th style={{ minWidth: "150px" }}>Transaction ID</th>
@@ -296,11 +262,7 @@ export default function RegistrationList() {
                     <td className="text-start">{item.delegatesOther || "-"}</td>
                     <td>{item.arrivalDay || "-"}</td>
                     <td>{item.arrivalTime || "-"}</td>
-                    <td className="fw-bold">₹{item.totalAmount || 0}</td>
                     <td className="text-success fw-bold">₹{item.amountPaid || 0}</td>
-                    <td className={`fw-bold ${(item.balance || item.totalAmount - item.amountPaid || 0) > 0 ? "text-warning" : "text-success"}`}>
-                      ₹{item.balance || ((item.totalAmount || 0) - (item.amountPaid || 0))}
-                    </td>
                     <td>{item.paymentMode2 || "-"}</td>
                     <td>{item.dateOfPayment || "-"}</td>
                     <td className="text-break">{item.transactionId || "-"}</td>
@@ -342,8 +304,8 @@ export default function RegistrationList() {
               })
             ) : (
               <tr>
-                <td colSpan="35" className="text-danger fw-bold py-4">
-                  No Records Found {registrarRegion && `for ${registrarRegion}`}
+                <td colSpan="33" className="text-danger fw-bold py-4">
+                  No Records Found {filterRegion !== "all" && `for ${filterRegion}`}
                 </td>
               </tr>
             )}
@@ -354,7 +316,8 @@ export default function RegistrationList() {
       {/* Count Display */}
       <div className="mt-2 text-muted small">
         Showing {filteredRecords.length} of {records.length} registration(s)
-        {registrarRegion && ` for ${registrarRegion}`}
+        {filterRegion !== "all" && ` (Filtered: ${filterRegion})`}
+        {filterRegion === "all" && " (All Regions)"}
       </div>
 
       {/* Mobile Styling */}
