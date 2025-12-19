@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS } from "./constants";
 
 export default function RegistrarLogin() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("registrar");
+  const [password, setPassword] = useState("registrar@123");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -18,7 +18,7 @@ export default function RegistrarLogin() {
       const res = await fetch(API_ENDPOINTS.LOGIN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
@@ -68,13 +68,13 @@ export default function RegistrarLogin() {
         {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={handleLogin}>
-          <label className="fw-semibold mb-1">Email</label>
+          <label className="fw-semibold mb-1">Username</label>
           <input
-            type="email"
+            type="text"
             className="form-control mb-3 p-3"
-            placeholder="Enter registrar email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter registrar username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             style={{ borderRadius: "10px" }}
           />
 

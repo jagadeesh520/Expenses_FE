@@ -4,8 +4,8 @@ import { API_ENDPOINTS } from "./constants";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("admin@123");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,7 +18,7 @@ export default function AdminLogin() {
       const res = await fetch(API_ENDPOINTS.LOGIN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
@@ -65,13 +65,13 @@ export default function AdminLogin() {
 
         <form onSubmit={handleLogin}>
           <div className="mb-3">
-            <label className="form-label">Email</label>
+            <label className="form-label">Username</label>
             <input
-              type="email"
+              type="text"
               className="form-control form-control-lg"
-              placeholder="Enter admin email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter admin username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
