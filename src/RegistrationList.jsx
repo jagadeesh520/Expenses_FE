@@ -223,6 +223,7 @@ export default function RegistrationList() {
               <th style={{ minWidth: "100px" }}>Payment Mode</th>
               <th style={{ minWidth: "120px" }}>Payment Date</th>
               <th style={{ minWidth: "150px" }}>Transaction ID</th>
+              <th style={{ minWidth: "120px" }}>Payment Screenshot</th>
               <th style={{ minWidth: "100px" }}>Status</th>
               <th style={{ minWidth: "150px" }}>Action</th>
             </tr>
@@ -267,6 +268,21 @@ export default function RegistrationList() {
                     <td>{item.dateOfPayment || "-"}</td>
                     <td className="text-break">{item.transactionId || "-"}</td>
                     <td>
+                      {item.paymentScreenshot ? (
+                        <a
+                          href={`${API_ENDPOINTS.UPLOADS}/${encodeURIComponent(item.paymentScreenshot)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-info"
+                          title="View Payment Screenshot"
+                        >
+                          View Image
+                        </a>
+                      ) : (
+                        <span className="text-muted">-</span>
+                      )}
+                    </td>
+                    <td>
                       <span
                         className={`badge fw-bold ${
                           status === "approved" ? "bg-success" : status === "rejected" ? "bg-danger" : "bg-warning"
@@ -304,7 +320,7 @@ export default function RegistrationList() {
               })
             ) : (
               <tr>
-                <td colSpan="33" className="text-danger fw-bold py-4">
+                <td colSpan="34" className="text-danger fw-bold py-4">
                   No Records Found {filterRegion !== "all" && `for ${filterRegion}`}
                 </td>
               </tr>
