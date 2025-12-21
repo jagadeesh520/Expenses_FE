@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -15,6 +15,46 @@ export default function PaymentValidationTransactionValidation() {
   const [validatedPayments, setValidatedPayments] = useState([]);
   const [nonValidatedPayments, setNonValidatedPayments] = useState([]);
   const [validationCompleted, setValidationCompleted] = useState(false);
+  
+  // New state for payments list
+  const [allPayments, setAllPayments] = useState([]);
+  const [loadingPayments, setLoadingPayments] = useState(true);
+  const [filterRegion, setFilterRegion] = useState("all"); // "all", "West Rayalaseema", "East Rayalaseema"
+
+  // Fetch all payments on component mount
+  useEffect(() => {
+    fetchAllPayments();
+  }, []);
+
+  const fetchAllPayments = async () => {
+    setLoadingPayments(true);
+    try {
+      const res = await fetch(API_ENDPOINTS.PAYMENTS_LIST);
+      const result = await res.json();
+      
+      if (result.success && result.data) {
+        // Sort by dateOfPayment (newest first, then by createdAt if dateOfPayment is missing)
+        const sorted = result.data.sort((a, b) => {
+          const dateA = a.dateOfPayment ? new Date(a.dateOfPayment) : new Date(a.createdAt || 0);
+          const dateB = b.dateOfPayment ? new Date(b.dateOfPayment) : new Date(b.createdAt || 0);
+          return dateB - dateA; // Descending order (newest first)
+        });
+        setAllPayments(sorted);
+      }
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      toast.error("Failed to load payments list");
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
+  // Filter payments by region
+  const filteredPayments = allPayments.filter((payment) => {
+    if (filterRegion === "all") return true;
+    const paymentRegion = payment.region || "";
+    return paymentRegion.toLowerCase().includes(filterRegion.toLowerCase());
+  });
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -237,27 +277,123 @@ export default function PaymentValidationTransactionValidation() {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-          <h4 className="fw-bold">
-            Payment Validation - {region}
-          </h4>
-          <p className="text-muted small mb-0">Upload PhonePe transaction history PDF to validate payments</p>
+          <h4 className="fw-bold">Payment Validation</h4>
+          <p className="text-muted small mb-0">View all payments and validate with PhonePe transaction history PDF</p>
         </div>
         <button
           className="btn btn-outline-secondary"
           onClick={() => navigate("/payment-validation-region")}
         >
           <i className="bi bi-arrow-left me-2"></i>
-          Change Region
+          Back
         </button>
+      </div>
+
+      {/* All Payments List Section */}
+      <div className="card mb-4">
+        <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h5 className="mb-0">
+            <i className="bi bi-list-ul me-2"></i>
+            All Payments ({filteredPayments.length})
+          </h5>
+          <select
+            className="form-select form-select-sm"
+            style={{ maxWidth: "250px" }}
+            value={filterRegion}
+            onChange={(e) => setFilterRegion(e.target.value)}
+          >
+            <option value="all">All Regions</option>
+            <option value="West Rayalaseema">West Rayalaseema</option>
+            <option value="East Rayalaseema">East Rayalaseema</option>
+          </select>
+        </div>
+        <div className="card-body">
+          {loadingPayments ? (
+            <div className="text-center py-4">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-2 text-muted">Loading payments...</p>
+            </div>
+          ) : filteredPayments.length > 0 ? (
+            <div className="table-responsive" style={{ maxHeight: "60vh", overflowY: "auto" }}>
+              <table className="table table-bordered table-striped table-hover align-middle text-center table-sm">
+                <thead className="table-dark" style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                  <tr>
+                    <th>S.No</th>
+                    <th>Date of Amount Paid</th>
+                    <th>Name</th>
+                    <th>Contact Number</th>
+                    <th>Amount Paid</th>
+                    <th>Amount Paid Via (Screenshot)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPayments.map((payment, index) => (
+                    <tr key={payment._id || index}>
+                      <td>{index + 1}</td>
+                      <td>
+                        {payment.dateOfPayment 
+                          ? new Date(payment.dateOfPayment).toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            })
+                          : payment.createdAt
+                            ? new Date(payment.createdAt).toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })
+                            : "-"}
+                      </td>
+                      <td className="text-start">{payment.name || payment.fullName || "-"}</td>
+                      <td>{payment.mobile || "-"}</td>
+                      <td className="text-success fw-bold">₹{Number(payment.amountPaid || 0).toLocaleString()}</td>
+                      <td>
+                        {payment.paymentScreenshot ? (
+                          <a
+                            href={`${API_ENDPOINTS.UPLOADS}/${encodeURIComponent(payment.paymentScreenshot)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-sm btn-info"
+                            title="View Payment Screenshot"
+                          >
+                            <i className="bi bi-image me-1"></i>
+                            View Image
+                          </a>
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="alert alert-info mb-0">
+              <i className="bi bi-info-circle me-2"></i>
+              No payments found for the selected filter.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* PDF Upload Section */}
       <div className="card mb-4">
-        <div className="card-body">
-          <h5 className="card-title mb-3">
+        <div className="card-header bg-secondary text-white">
+          <h5 className="mb-0">
             <i className="bi bi-file-earmark-pdf me-2"></i>
-            Upload PhonePe Transaction History PDF
+            Validate Payments with PhonePe PDF
           </h5>
+        </div>
+
+        <div className="card-body">
+          <p className="text-muted mb-3">
+            Upload PhonePe transaction history PDF to validate payments against registered transactions.
+            Currently validating for: <strong>{region}</strong>
+          </p>
           
           <div className="mb-3">
             <label htmlFor="pdfFile" className="form-label">
@@ -292,7 +428,7 @@ export default function PaymentValidationTransactionValidation() {
             ) : (
               <>
                 <i className="bi bi-check-circle me-2"></i>
-                Validate Payments
+                Validate Payments for {region}
               </>
             )}
           </button>
