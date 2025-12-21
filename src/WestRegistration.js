@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 // Assuming useNavigate is available in the component's scope (requires import)
 import { useNavigate } from "react-router-dom";
-import { API_ENDPOINTS } from "./constants"; 
+import { API_ENDPOINTS, REGISTRATION_STATUS } from "./constants"; 
 import logo from "./Assests/logo.PNG";
 import WestGooglePayQR from "./Assests/west_googlepay.png";
 import WestPhonePayQR from "./Assests/west_phonepay.png";
@@ -56,6 +56,9 @@ export default function SPICONRegistration() {
   
   // --- Define the Region for API Submission ---
   const REGION_NAME = "West Rayalaseema";
+  
+  // Check if registration is closed for this region
+  const isRegistrationClosed = REGISTRATION_STATUS[REGION_NAME] === true;
 
   const handle = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -110,6 +113,62 @@ export default function SPICONRegistration() {
     }
     // Note: setLoading(false) is intentionally removed here, as navigation unmounts the component on success.
   };
+
+  // If registration is closed, show the closed message screen
+  if (isRegistrationClosed) {
+    return (
+      <div className="container py-4">
+        <div className="row justify-content-center">
+          <div className="col-12 col-md-8 col-lg-6">
+            <div className="text-center mb-4">
+              <img
+                src={logo}
+                alt="SPICON Logo"
+                style={{ width: "120px", marginBottom: "20px" }}
+              />
+              <h2 className="fw-bold mb-4">
+                WEST RAYALASEEMA SPICON-2026
+              </h2>
+            </div>
+            
+            <div className="card shadow-lg border-0 p-5 text-center">
+              <div className="mb-4">
+                <i 
+                  className="bi bi-info-circle-fill" 
+                  style={{ 
+                    fontSize: "4rem", 
+                    color: "#0dcaf0" 
+                  }}
+                ></i>
+              </div>
+              
+              <h3 className="fw-bold text-primary mb-3">
+                Registration Currently Closed
+              </h3>
+              
+              <p className="lead mb-4">
+                Registrations for <strong>West Rayalaseema</strong> are currently closed.
+              </p>
+              
+              <p className="text-muted mb-4">
+                The registration deadline has passed. Please contact the administrator 
+                or check back later for any updates.
+              </p>
+              
+              <div className="mt-4">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate("/")}
+                >
+                  Return to Home
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-4">

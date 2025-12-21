@@ -33,3 +33,10 @@ export const API_ENDPOINTS = {
   UPLOADS: `${API_BASE_URL}/uploads`,
 };
 
+// Registration Status Configuration
+// Set to true to close registration for a region
+export const REGISTRATION_STATUS = {
+  "West Rayalaseema": true, // Registration closed - set to false to re-enable
+  "East Rayalaseema": false, // Set to true to close registration
+};
+
