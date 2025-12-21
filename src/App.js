@@ -15,6 +15,8 @@ import CashierPaymentRequests from "./CashierPaymentRequests";
 import ViewAllPaymentRequests from "./ViewAllPaymentRequests";
 import MyPaymentRequests from "./MyPaymentRequests";
 import ViewPaymentRequests from "./ViewPaymentRequests";
+import PaymentValidationRegionSelection from "./PaymentValidationRegionSelection";
+import PaymentValidationTransactionValidation from "./PaymentValidationTransactionValidation";
 
 function App() {
   return (
@@ -48,6 +50,10 @@ function App() {
 
         {/* View Payment Requests (for Chairperson, Registrar, Coordinator, LAC Convener) */}
         <Route path="/view-payment-requests" element={<ViewPaymentRequests />} />
+
+        {/* Payment Validation */}
+        <Route path="/payment-validation-region" element={<PaymentValidationRegionSelection />} />
+        <Route path="/payment-validation" element={<PaymentValidationTransactionValidation />} />
 
       </Routes>
     </Router>

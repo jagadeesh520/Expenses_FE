@@ -1,6 +1,6 @@
 // API Configuration
 // Update this IP address when the backend server IP changes
-export const API_BASE_URL = "https://api.sjtechsol.com";
+export const API_BASE_URL = "http://10.155.41.204:5000";
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -31,12 +31,8 @@ export const API_ENDPOINTS = {
   
   // File Uploads
   UPLOADS: `${API_BASE_URL}/uploads`,
-};
-
-// Registration Status Configuration
-// Set to true to close registration for a region
-export const REGISTRATION_STATUS = {
-  "West Rayalaseema": true, // Registration closed - set to false to re-enable
-  "East Rayalaseema": false, // Set to true to close registration
+  
+  // Payment Validation
+  VALIDATE_PAYMENTS: `${API_BASE_URL}/api/cashier/validate-payments`,
 };
 

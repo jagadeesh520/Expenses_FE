@@ -82,6 +82,19 @@ export default function Home() {
                   <span>View Your Requests</span>
                 </div>
               </div>
+
+              {/* Payment Validation */}
+              <div className="col-6">
+                <div
+                  className="login-box"
+                  style={{ background: "#fff5f5", borderColor: "#dc3545" }}
+                  onClick={() => navigate("/payment-validation-region")}
+                >
+                  <i className="bi bi-shield-check icon" style={{ color: "#dc3545" }}></i>
+                  <h5 className="fw-bold mt-2">Payment Validation</h5>
+                  <span>Validate PhonePe Transactions</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
