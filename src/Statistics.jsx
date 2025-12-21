@@ -13,9 +13,15 @@ export default function Statistics() {
   const [payments, setPayments] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("registrarToken");
-    if (!token) {
-      navigate("/registrar-login");
+    const registrarToken = localStorage.getItem("registrarToken");
+    const adminToken = localStorage.getItem("adminToken");
+    if (!registrarToken && !adminToken) {
+      // Redirect to appropriate login based on which token exists
+      if (!adminToken) {
+        navigate("/registrar-login");
+      } else {
+        navigate("/admin-login");
+      }
       return;
     }
     fetchData();
@@ -403,7 +409,14 @@ export default function Statistics() {
         <div className="d-flex gap-2">
           <button
             className="btn btn-outline-secondary"
-            onClick={() => navigate("/registrar-dashboard")}
+            onClick={() => {
+              const adminToken = localStorage.getItem("adminToken");
+              if (adminToken) {
+                navigate("/admin-dashboard");
+              } else {
+                navigate("/registrar-dashboard");
+              }
+            }}
           >
             ← Back to Dashboard
           </button>
@@ -412,6 +425,8 @@ export default function Statistics() {
             onClick={() => {
               localStorage.removeItem("registrarToken");
               localStorage.removeItem("registrarData");
+              localStorage.removeItem("adminToken");
+              localStorage.removeItem("adminData");
               navigate("/");
             }}
           >

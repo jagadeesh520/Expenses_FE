@@ -1,17 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_ENDPOINTS } from "./constants";
 
 export default function AdminDashboard() {
-  const [records, setRecords] = useState([]);
-  const [filterRegion, setFilterRegion] = useState("all");
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
-    if (!token) return navigate("/");
-    fetchPayments();
-  }, []);
+    if (!token) {
+      navigate("/admin-login");
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
@@ -19,140 +17,136 @@ export default function AdminDashboard() {
     navigate("/");
   };
 
-  const fetchPayments = async () => {
-    try {
-      const res = await fetch(API_ENDPOINTS.PAYMENTS_LIST);
-      const result = await res.json();
-
-      if (result.success) {
-        const unique = result.data.filter(
-          (obj, index, self) =>
-            index === self.findIndex((t) => t.email === obj.email)
-        );
-        setRecords(unique);
-      }
-    } catch (err) {
-      console.log("Error fetching list:", err);
-    }
-  };
-
-  const filteredRecords = records.filter((item) =>
-    filterRegion === "all" ? true : item.region?.toLowerCase().includes(filterRegion)
-  );
-
-  const totalAmount = filteredRecords.reduce((sum, x) => sum + (Number(x.amountPaid) || 0), 0);
-
-  const totalEast = records
-    .filter(r => r.region?.toLowerCase().includes("east"))
-    .reduce((sum, r) => sum + Number(r.amountPaid || 0), 0);
-
-  const totalWest = records
-    .filter(r => r.region?.toLowerCase().includes("west"))
-    .reduce((sum, r) => sum + Number(r.amountPaid || 0), 0);
-
   return (
-    <div className="container-fluid mt-4">
+    <div className="container-fluid d-flex flex-column" style={{ minHeight: "100vh", paddingBottom: "20px" }}>
+      <div className="container mt-4" style={{ maxWidth: "1200px", flex: "1", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        {/* Header - Centered */}
+        <div className="text-center mb-4">
+          <h4 className="fw-bold">Admin Dashboard</h4>
+        </div>
 
-      {/* Header with Back & Logout */}
-      <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-        <h3 className="fw-bold m-0 text-center flex-grow-1">
-          Admin Payment Dashboard
-        </h3>
+        {/* Dashboard Modules - Compact Grid - Centered */}
+        <div className="row g-3 mb-3 justify-content-center">
+          {/* Registrations Approval List Module */}
+          <div className="col-12 col-md-6 col-lg-5">
+            <div
+              className="card shadow-sm dashboard-module"
+              style={{
+                cursor: "pointer",
+                transition: "all 0.2s",
+                borderRadius: "8px",
+                border: "2px solid #0d6efd",
+                borderLeft: "4px solid #0d6efd"
+              }}
+              onClick={() => navigate("/registrations")}
+            >
+              <div className="card-body p-3">
+                <div className="d-flex align-items-center">
+                  <div className="flex-shrink-0">
+                    <i className="bi bi-list-check" style={{ fontSize: "32px", color: "#0d6efd" }}></i>
+                  </div>
+                  <div className="flex-grow-1 ms-3">
+                    <h5 className="fw-bold mb-1" style={{ fontSize: "16px" }}>Registrations Approval List</h5>
+                    <p className="text-muted mb-0 small">
+                      View and manage registration approvals
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <i className="bi bi-chevron-right text-muted"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <div className="d-flex gap-2">
-          <button 
-            className="btn btn-primary fw-bold px-4" 
-            onClick={() => navigate("/cashier-payment-requests")}
-          >
-            Upload Payment
-          </button>
-          <button 
-            className="btn btn-info fw-bold px-4" 
-            onClick={() => navigate("/view-payment-requests")}
-          >
-            View All Requests
-          </button>
-          <button className="btn btn-danger fw-bold px-4" onClick={handleLogout}>
-            Logout
+          {/* Statistics Module */}
+          <div className="col-12 col-md-6 col-lg-5">
+            <div
+              className="card shadow-sm dashboard-module"
+              style={{
+                cursor: "pointer",
+                transition: "all 0.2s",
+                borderRadius: "8px",
+                border: "2px solid #198754",
+                borderLeft: "4px solid #198754"
+              }}
+              onClick={() => navigate("/statistics")}
+            >
+              <div className="card-body p-3">
+                <div className="d-flex align-items-center">
+                  <div className="flex-shrink-0">
+                    <i className="bi bi-bar-chart-fill" style={{ fontSize: "32px", color: "#198754" }}></i>
+                  </div>
+                  <div className="flex-grow-1 ms-3">
+                    <h5 className="fw-bold mb-1" style={{ fontSize: "16px" }}>Statistics</h5>
+                    <p className="text-muted mb-0 small">
+                      View registration and payment statistics
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <i className="bi bi-chevron-right text-muted"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Navigation Options - Centered */}
+        <div className="row g-2 mb-4 justify-content-center">
+          <div className="col-12 col-md-auto">
+            <div className="d-flex flex-wrap gap-2 justify-content-center">
+              <button
+                className="btn btn-info btn-sm fw-bold"
+                onClick={() => navigate("/payment-requests")}
+              >
+                <i className="bi bi-check-circle me-1"></i>Approve Payment Requests
+              </button>
+              <button
+                className="btn btn-secondary btn-sm fw-bold"
+                onClick={() => navigate("/view-payment-requests")}
+              >
+                <i className="bi bi-eye me-1"></i>View All Payment Requests
+              </button>
+              <button
+                className="btn btn-primary btn-sm fw-bold"
+                onClick={() => navigate("/cashier-payment-requests")}
+              >
+                <i className="bi bi-upload me-1"></i>Upload Payment
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Logout Button - At Bottom */}
+        <div className="text-center mt-auto pt-4">
+          <button className="btn btn-danger btn-sm fw-bold px-4" onClick={handleLogout}>
+            <i className="bi bi-box-arrow-right me-1"></i>Logout
           </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
-
-        <select className="form-select" style={{maxWidth:"250px"}}
-          onChange={(e) => setFilterRegion(e.target.value)}
-        >
-          <option value="all">All Regions</option>
-          <option value="east">East Rayalaseema</option>
-          <option value="west">West Rayalaseema</option>
-        </select>
-
-        <div className="fw-bold fs-6 text-center d-flex flex-wrap gap-3">
-          <span className="text-primary">East: ₹{totalEast}</span>
-          <span className="text-success">West: ₹{totalWest}</span>
-          <span className="text-warning">Total Displayed: ₹{totalAmount}</span>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="table-responsive" style={{ maxHeight: "80vh", overflowY: "scroll" }}>
-        <table className="table table-bordered table-striped table-sm text-center">
-          <thead className="table-dark">
-            <tr>
-              <th>S.No</th><th>Region</th><th>Email</th><th>Name</th><th>Gender</th><th>Age</th>
-              <th>Mobile</th><th>Recommended Role</th><th>Recommender Contact</th>
-              <th>Amount Paid</th><th>Payment Mode</th><th>Date</th><th>Txn ID</th>
-              <th>Screenshot</th><th>Balance</th><th>Status</th><th>Created</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredRecords.length ? filteredRecords.map((item, i) => (
-              <tr key={item._id}>
-                <td>{i + 1}</td>
-                <td>{item.region}</td>
-                <td>{item.email}</td>
-                <td>{item.name}</td>
-                <td>{item.gender || "-"}</td>
-                <td>{item.age}</td>
-                <td>{item.mobile}</td>
-                <td>{item.recommendedByRole}</td>
-                <td>{item.recommenderContact}</td>
-                <td>{item.amountPaid}</td>
-                <td>{item.paymentMode2}</td>
-                <td>{item.dateOfPayment || "-"}</td>
-                <td>{item.transactionId}</td>
-
-                <td>
-                  {item.paymentScreenshot && (
-                    <a href={item.paymentScreenshot} target="_blank" rel="noreferrer">View</a>
-                  )}
-                </td>
-
-                <td>{item.totalAmount ?? 0}</td>
-                <td className={item.status === "paid" ? "text-success fw-bold" : "text-danger fw-bold"}>
-                  {item.status}
-                </td>
-                <td>{new Date(item.createdAt).toLocaleString()}</td>
-              </tr>
-            )) : (
-              <tr><td colSpan="40" className="text-danger fw-bold">No Records Found</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Responsive Fix */}
+      {/* Styles */}
       <style>{`
-        @media(max-width:768px){
-          table{ font-size:12px; }
-          h3{ font-size:18px; }
-          .table-responsive{ max-height:70vh; }
+        .dashboard-module:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        }
+        @media(max-width: 768px) {
+          .dashboard-module .card-body {
+            padding: 0.75rem !important;
+          }
+          .dashboard-module i {
+            font-size: 28px !important;
+          }
+          .dashboard-module h5 {
+            font-size: 14px !important;
+          }
+          .dashboard-module .small {
+            font-size: 11px !important;
+          }
         }
       `}</style>
-
     </div>
   );
 }

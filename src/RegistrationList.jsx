@@ -19,8 +19,17 @@ export default function RegistrationList() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("registrarToken");
-    if (!token) return navigate("/registrar-login");
+    const registrarToken = localStorage.getItem("registrarToken");
+    const adminToken = localStorage.getItem("adminToken");
+    if (!registrarToken && !adminToken) {
+      // Redirect to appropriate login
+      if (!adminToken) {
+        navigate("/registrar-login");
+      } else {
+        navigate("/admin-login");
+      }
+      return;
+    }
     
     // Load all registrations (both regions)
     fetchList();
@@ -140,6 +149,8 @@ export default function RegistrationList() {
             onClick={() => {
               localStorage.removeItem("registrarToken");
               localStorage.removeItem("registrarData");
+              localStorage.removeItem("adminToken");
+              localStorage.removeItem("adminData");
               toast.success("Logged out!");
               setTimeout(() => navigate("/"), 600);
             }}
