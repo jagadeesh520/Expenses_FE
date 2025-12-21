@@ -1,6 +1,6 @@
 // API Configuration
 // Update this IP address when the backend server IP changes
-export const API_BASE_URL = "http://10.155.41.204:5000";
+export const API_BASE_URL = "https://api.sjtechsol.com";
 
 // API Endpoints
 export const API_ENDPOINTS = {
