@@ -21,8 +21,43 @@ export default function Home() {
       style={{ paddingTop: "30px", paddingBottom: "30px" }}
     >
       <div className="row w-100" style={{ maxWidth: "1200px" }}>
-        {/* LEFT SECTION - LOGIN PORTAL */}
-        <div className="col-md-6 mb-4">
+        {/* REGISTRATION SECTION - First on mobile, right on desktop */}
+        <div className="col-md-6 mb-4 order-1 order-md-2">
+          <div className="card p-5 shadow-lg text-center">
+            <img
+              src={logo}
+              alt="logo"
+              className="mb-4 mx-auto"
+              style={{ width: "150px" }}
+            />
+
+            <h2 className="fw-bold mb-3">REGISTRATION FOR SPICON 2026</h2>
+
+            <label className="fw-bold text-start w-100">
+              Select Your Region
+            </label>
+            <select
+              className="form-select form-select-lg mt-2"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+            >
+              <option value="">-- Choose Region --</option>
+              <option value="West Rayalaseema">West Rayalaseema</option>
+              <option value="East Rayalaseema">East Rayalaseema</option>
+            </select>
+
+            <button
+              className="btn btn-primary btn-lg w-100 mt-4"
+              disabled={!region}
+              onClick={handleContinue}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+
+        {/* LOGIN PORTAL SECTION - Second on mobile, left on desktop */}
+        <div className="col-md-6 mb-4 order-2 order-md-1">
           <div
             className="card p-5 shadow-lg text-center"
             style={{ height: "100%" }}
@@ -32,7 +67,7 @@ export default function Home() {
             </h2>
             <p className="text-secondary mb-4">Select login type</p>
 
-            <div className="row g-4">
+            <div className="row g-3">
               {/* Admin Login Tile */}
               <div className="col-6">
                 <div
@@ -98,41 +133,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {/* RIGHT SECTION - REGISTRATION */}
-        <div className="col-md-6 mb-4">
-          <div className="card p-5 shadow-lg text-center">
-            <img
-              src={logo}
-              alt="logo"
-              className="mb-4 mx-auto"
-              style={{ width: "150px" }}
-            />
-
-            <h2 className="fw-bold mb-3">REGISTRATION FOR SPICON 2026</h2>
-
-            <label className="fw-bold text-start w-100">
-              Select Your Region
-            </label>
-            <select
-              className="form-select form-select-lg mt-2"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            >
-              <option value="">-- Choose Region --</option>
-              <option value="West Rayalaseema">West Rayalaseema</option>
-              <option value="East Rayalaseema">East Rayalaseema</option>
-            </select>
-
-            <button
-              className="btn btn-primary btn-lg w-100 mt-4"
-              disabled={!region}
-              onClick={handleContinue}
-            >
-              Continue
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* BEAUTIFUL STYLING */}
@@ -171,47 +171,51 @@ export default function Home() {
   /* 📱 Mobile Friendly */
   @media(max-width: 768px){
     .login-box{
-      margin-bottom:15px;
-      padding:25px;
+      margin-bottom:10px;
+      padding:20px;
     }
     .icon{
-      font-size:42px;
+      font-size:36px;
     }
     .card{
-      padding:30px !important;
+      padding:20px !important;
     }
-    .row.g-4 .col-6{
-      width:100%;
+    .login-box h5{
+      font-size:15px;
+      margin-top:10px !important;
+    }
+    .login-box span{
+      font-size:12px;
     }
   }
 
   @media(max-width: 450px){
     h2 { font-size:22px; }
-    .login-box span { font-size:14px; }
-    .login-box h5 { font-size:18px; }
+    .login-box{
+      padding:15px;
+    }
+    .login-box span { 
+      font-size:11px; 
+    }
+    .login-box h5 { 
+      font-size:14px; 
+    }
+    .icon{
+      font-size:30px;
+    }
+    .card{
+      padding:15px !important;
+    }
   }
-    /* Mobile layout fix */
+  
+  /* Mobile layout fix */
   @media(max-width:768px){
     .container{
       padding-top:50px !important;
       padding-bottom:40px !important;
     }
-    .row{
-      flex-direction:column;
-      align-items:center;
-    }
     .col-md-6{
       width:100%;
-    }
-    .login-box{
-      margin-top:10px;
-    }
-  }
-
-  @media(max-width:450px){
-    h2{ font-size:22px; }
-    .card{
-      padding:20px !important;
     }
   }
 `}</style>

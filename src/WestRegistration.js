@@ -163,7 +163,7 @@ export default function SPICONRegistration() {
 
         <p className="mt-3">
           <strong>Last date for registration:</strong><br />
-          26/12/2025 – 11:59 PM
+          28/12/2025 – 11:59 PM
         </p>
 
         <p className="text-danger fw-bold">NOTE: Spot registrations will not be allowed under any circumstances.</p>

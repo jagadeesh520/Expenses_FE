@@ -37,7 +37,7 @@ export default function RegistrarLogin() {
       localStorage.setItem("registrarData", JSON.stringify(data.user));
 
       alert("Login Successful 🎉");
-      navigate("/registrations");
+      navigate("/registrar-dashboard");
     } catch (err) {
       setError("Server error");
     }

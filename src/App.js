@@ -17,6 +17,8 @@ import MyPaymentRequests from "./MyPaymentRequests";
 import ViewPaymentRequests from "./ViewPaymentRequests";
 import PaymentValidationRegionSelection from "./PaymentValidationRegionSelection";
 import PaymentValidationTransactionValidation from "./PaymentValidationTransactionValidation";
+import RegistrarDashboard from "./RegistrarDashboard";
+import Statistics from "./Statistics";
 
 function App() {
   return (
@@ -35,7 +37,9 @@ function App() {
         <Route path="/registration-success" element={<RegistrationSuccess />} />
 
         {/* Registrar Pages */}
+        <Route path="/registrar-dashboard" element={<RegistrarDashboard />} /> {/* Post-login dashboard */}
         <Route path="/registrations" element={<RegistrationList />} /> {/* Approval page */}
+        <Route path="/statistics" element={<Statistics />} /> {/* Statistics page */}
         <Route path="/payment-requests" element={<PaymentRequestList />} /> {/* Payment requests for registrar */}
 
         {/* Coordinator/LAC Convener Pages */}
