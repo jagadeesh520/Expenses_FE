@@ -539,8 +539,58 @@ export default function PaymentAbstract() {
         Duplicate entries based on transaction ID have been removed.
       </div>
 
-      {/* Responsive Styles */}
+      {/* Enhanced Table Styling */}
       <style>{`
+        /* Enhanced table borders for better readability */
+        .table {
+          border: 2px solid #495057 !important;
+        }
+        .table th,
+        .table td {
+          border: 1px solid #6c757d !important;
+          border-width: 1px !important;
+        }
+        .table thead th {
+          border-bottom: 2px solid #495057 !important;
+          border-top: 2px solid #495057 !important;
+          background-color: #f8f9fa !important;
+          font-weight: 600 !important;
+        }
+        .table tbody tr {
+          border-top: 1px solid #6c757d !important;
+        }
+        .table tbody tr:first-child {
+          border-top: 1px solid #6c757d !important;
+        }
+        .table tfoot th,
+        .table tfoot td {
+          border-top: 2px solid #495057 !important;
+          border-bottom: 2px solid #495057 !important;
+        }
+        .table.table-bordered {
+          border: 2px solid #495057 !important;
+        }
+        .table.table-bordered th,
+        .table.table-bordered td {
+          border: 1px solid #6c757d !important;
+        }
+        .table.table-striped > tbody > tr:nth-of-type(odd) > td {
+          background-color: rgba(0, 0, 0, 0.02);
+        }
+        .table.table-striped > tbody > tr:nth-of-type(even) > td {
+          background-color: rgba(0, 0, 0, 0.05);
+        }
+        /* Enhanced header separation */
+        .table thead th {
+          border-bottom-width: 2px !important;
+        }
+        /* Card border enhancement */
+        .card {
+          border: 1px solid #dee2e6 !important;
+        }
+        .card-header {
+          border-bottom: 2px solid #dee2e6 !important;
+        }
         @media(max-width: 768px) {
           .table {
             font-size: 12px;

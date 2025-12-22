@@ -54,9 +54,9 @@ export default function Statistics() {
                     <i className="bi bi-people-fill" style={{ fontSize: "32px", color: "#0d6efd" }}></i>
                   </div>
                   <div className="flex-grow-1 ms-3">
-                    <h5 className="fw-bold mb-1" style={{ fontSize: "16px" }}>District & Place wise People Count</h5>
+                    <h5 className="fw-bold mb-1" style={{ fontSize: "16px" }}>District & Place wise People Details</h5>
                     <p className="text-muted mb-0 small">
-                      View district and place wise registration counts
+                      View district and place wise registration details
                     </p>
                   </div>
                   <div className="flex-shrink-0">

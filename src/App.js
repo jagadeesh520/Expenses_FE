@@ -21,7 +21,6 @@ import RegistrarDashboard from "./RegistrarDashboard";
 import Statistics from "./Statistics";
 import DistrictPlacePeopleDetails from "./DistrictPlacePeopleDetails";
 import PaymentAbstract from "./PaymentAbstract";
-import PeopleNames from "./PeopleNames";
 
 function App() {
   return (
@@ -66,7 +65,6 @@ function App() {
         <Route path="/statistics" element={<Statistics />} />
         <Route path="/statistics/district-place-people" element={<DistrictPlacePeopleDetails />} />
         <Route path="/statistics/payment-abstract" element={<PaymentAbstract />} />
-        <Route path="/statistics/people-names" element={<PeopleNames />} />
 
       </Routes>
     </Router>
