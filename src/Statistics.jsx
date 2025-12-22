@@ -99,37 +99,6 @@ export default function Statistics() {
             </div>
           </div>
 
-          {/* District and Region wise People Names Module */}
-          <div className="col-12 col-md-6 col-lg-4">
-            <div
-              className="card shadow-sm dashboard-module"
-              style={{
-                cursor: "pointer",
-                transition: "all 0.2s",
-                borderRadius: "8px",
-                border: "2px solid #ffc107",
-                borderLeft: "4px solid #ffc107"
-              }}
-              onClick={() => navigate("/statistics/people-names")}
-            >
-              <div className="card-body p-3">
-                <div className="d-flex align-items-center">
-                  <div className="flex-shrink-0">
-                    <i className="bi bi-person-lines-fill" style={{ fontSize: "32px", color: "#ffc107" }}></i>
-                  </div>
-                  <div className="flex-grow-1 ms-3">
-                    <h5 className="fw-bold mb-1" style={{ fontSize: "16px" }}>People Names</h5>
-                    <p className="text-muted mb-0 small">
-                      View district and place wise people names
-                    </p>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <i className="bi bi-chevron-right text-muted"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Logout Button - At Bottom */}

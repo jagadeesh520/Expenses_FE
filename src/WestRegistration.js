@@ -93,12 +93,13 @@ export default function SPICONRegistration() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Registration failed");
 
-      // Redirect to the success page, passing only region and email via state
+      // Redirect to the success page, passing region, email, and success message via state
       navigate('/registration-success', { 
         state: { 
           region: REGION_NAME,
           email: form.email,
-          fullName: form.fullName
+          fullName: form.fullName,
+          message: data.message || "Registration successful. Confirmation email has been sent."
         } 
       });
 
