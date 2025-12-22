@@ -19,6 +19,9 @@ import PaymentValidationRegionSelection from "./PaymentValidationRegionSelection
 import PaymentValidationTransactionValidation from "./PaymentValidationTransactionValidation";
 import RegistrarDashboard from "./RegistrarDashboard";
 import Statistics from "./Statistics";
+import DistrictPlacePeopleDetails from "./DistrictPlacePeopleDetails";
+import PaymentAbstract from "./PaymentAbstract";
+import PeopleNames from "./PeopleNames";
 
 function App() {
   return (
@@ -58,6 +61,12 @@ function App() {
         {/* Payment Validation */}
         <Route path="/payment-validation-region" element={<PaymentValidationRegionSelection />} />
         <Route path="/payment-validation" element={<PaymentValidationTransactionValidation />} />
+
+        {/* Statistics Modules */}
+        <Route path="/statistics" element={<Statistics />} />
+        <Route path="/statistics/district-place-people" element={<DistrictPlacePeopleDetails />} />
+        <Route path="/statistics/payment-abstract" element={<PaymentAbstract />} />
+        <Route path="/statistics/people-names" element={<PeopleNames />} />
 
       </Routes>
     </Router>
