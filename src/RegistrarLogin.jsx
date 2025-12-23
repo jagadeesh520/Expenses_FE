@@ -1,14 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS } from "./constants";
 
 export default function RegistrarLogin() {
-  const [username, setUsername] = useState("registrar");
-  const [password, setPassword] = useState("registrar@123");
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:component-mount',message:'Component mounted',data:{hasRegistrarToken:!!localStorage.getItem('registrarToken'),hasRegistrarData:!!localStorage.getItem('registrarData')},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'D'})}).catch(()=>{});
+  }, []);
+  // #endregion
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:state-init',message:'State initialized - post-fix',data:{username,password,hasDefaults:username===''&&password==='',isEmpty:!username&&!password},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+  }, []);
+  // #endregion
 
   const handleLogin = async (e) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:handleLogin-entry',message:'Form submission triggered - post-fix',data:{username,password,hasValues:!!username&&!!password,isDefaultCreds:false},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     e.preventDefault();
     setError("");
 
@@ -74,7 +87,18 @@ export default function RegistrarLogin() {
             className="form-control mb-3 p-3"
             placeholder="Enter registrar username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:username-change',message:'Username field changed',data:{newValue:e.target.value,isAutofill:false},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+              // #endregion
+              setUsername(e.target.value);
+            }}
+            onFocus={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:username-focus',message:'Username field focused',data:{currentValue:e.target.value},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+              // #endregion
+            }}
+            autoComplete="off"
             style={{ borderRadius: "10px" }}
           />
 
@@ -84,7 +108,18 @@ export default function RegistrarLogin() {
             className="form-control mb-4 p-3"
             placeholder="Enter password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:password-change',message:'Password field changed',data:{hasValue:!!e.target.value,isAutofill:false},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+              // #endregion
+              setPassword(e.target.value);
+            }}
+            onFocus={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:password-focus',message:'Password field focused',data:{hasValue:!!e.target.value},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+              // #endregion
+            }}
+            autoComplete="new-password"
             style={{ borderRadius: "10px" }}
           />
 
