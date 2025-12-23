@@ -285,6 +285,360 @@ export default function DistrictPlacePeopleDetails() {
 
   const processedData = processData();
 
+  // Helper function to get volunteer counts by gender
+  const getVolunteerCountsByGender = () => {
+    const volunteerData = {
+      male: {}, // { district: { place: { names: Set, count: number } } }
+      female: {} // { district: { place: { names: Set, count: number } } }
+    };
+
+    filteredRegistrations.forEach((reg) => {
+      if (isVolunteer(reg.groupType)) {
+        const name = getName(reg);
+        if (!name) return;
+        
+        const district = reg.district || "Unknown";
+        const place = reg.iceuEgf || "Unknown";
+        const gender = getGender(reg.gender);
+
+        if (gender === "male") {
+          if (!volunteerData.male[district]) {
+            volunteerData.male[district] = {};
+          }
+          if (!volunteerData.male[district][place]) {
+            volunteerData.male[district][place] = { names: new Set(), count: 0 };
+          }
+          if (!volunteerData.male[district][place].names.has(name)) {
+            volunteerData.male[district][place].names.add(name);
+            volunteerData.male[district][place].count++;
+          }
+        } else if (gender === "female") {
+          if (!volunteerData.female[district]) {
+            volunteerData.female[district] = {};
+          }
+          if (!volunteerData.female[district][place]) {
+            volunteerData.female[district][place] = { names: new Set(), count: 0 };
+          }
+          if (!volunteerData.female[district][place].names.has(name)) {
+            volunteerData.female[district][place].names.add(name);
+            volunteerData.female[district][place].count++;
+          }
+        }
+      }
+    });
+
+    // Convert to simple count structure
+    const result = {
+      male: {},
+      female: {}
+    };
+
+    Object.keys(volunteerData.male).forEach(district => {
+      result.male[district] = {};
+      Object.keys(volunteerData.male[district]).forEach(place => {
+        result.male[district][place] = volunteerData.male[district][place].count;
+      });
+    });
+
+    Object.keys(volunteerData.female).forEach(district => {
+      result.female[district] = {};
+      Object.keys(volunteerData.female[district]).forEach(place => {
+        result.female[district][place] = volunteerData.female[district][place].count;
+      });
+    });
+
+    return result;
+  };
+
+  // Helper function to render the summary table
+  const renderSummaryTable = () => {
+    const volunteerCounts = getVolunteerCountsByGender();
+    
+    // Build summary data structure
+    const summaryData = {};
+    let grandTotal = {
+      families: 0,
+      singleGraduateMaleEmployed: 0,
+      singleGraduateFemaleEmployed: 0,
+      singleGraduateMaleUnemployed: 0,
+      singleGraduateFemaleUnemployed: 0,
+      studentsMale: 0,
+      studentsFemale: 0,
+      volunteersMale: 0,
+      volunteersFemale: 0,
+      childrenBelow15: 0,
+      childrenAbove15: 0,
+      total: 0
+    };
+
+    // Get all districts from all categories
+    const allDistricts = new Set();
+    Object.keys(processedData.maleStudents).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.femaleStudents).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.families).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.singleGraduateMalesEmployed).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.singleGraduateMalesUnemployed).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.singleGraduateFemalesEmployed).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.singleGraduateFemalesUnemployed).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.childrenBelow10).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.children10to14).forEach(d => allDistricts.add(d));
+    Object.keys(processedData.children15Plus).forEach(d => allDistricts.add(d));
+    Object.keys(volunteerCounts.male).forEach(d => allDistricts.add(d));
+    Object.keys(volunteerCounts.female).forEach(d => allDistricts.add(d));
+
+    const sortedDistricts = Array.from(allDistricts).sort();
+
+    sortedDistricts.forEach((district) => {
+      // Get all places for this district
+      const allPlaces = new Set();
+      
+      // Collect places from all categories
+      if (processedData.maleStudents[district]) {
+        Object.keys(processedData.maleStudents[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.femaleStudents[district]) {
+        Object.keys(processedData.femaleStudents[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.families[district]) {
+        Object.keys(processedData.families[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.singleGraduateMalesEmployed[district]) {
+        Object.keys(processedData.singleGraduateMalesEmployed[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.singleGraduateMalesUnemployed[district]) {
+        Object.keys(processedData.singleGraduateMalesUnemployed[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.singleGraduateFemalesEmployed[district]) {
+        Object.keys(processedData.singleGraduateFemalesEmployed[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.singleGraduateFemalesUnemployed[district]) {
+        Object.keys(processedData.singleGraduateFemalesUnemployed[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.childrenBelow10[district]) {
+        Object.keys(processedData.childrenBelow10[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.children10to14[district]) {
+        Object.keys(processedData.children10to14[district]).forEach(p => allPlaces.add(p));
+      }
+      if (processedData.children15Plus[district]) {
+        Object.keys(processedData.children15Plus[district]).forEach(p => allPlaces.add(p));
+      }
+      if (volunteerCounts.male[district]) {
+        Object.keys(volunteerCounts.male[district]).forEach(p => allPlaces.add(p));
+      }
+      if (volunteerCounts.female[district]) {
+        Object.keys(volunteerCounts.female[district]).forEach(p => allPlaces.add(p));
+      }
+
+      const sortedPlaces = Array.from(allPlaces).sort();
+      
+      if (!summaryData[district]) {
+        summaryData[district] = {
+          places: [],
+          districtTotal: {
+            families: 0,
+            singleGraduateMaleEmployed: 0,
+            singleGraduateFemaleEmployed: 0,
+            singleGraduateMaleUnemployed: 0,
+            singleGraduateFemaleUnemployed: 0,
+            studentsMale: 0,
+            studentsFemale: 0,
+            volunteersMale: 0,
+            volunteersFemale: 0,
+            childrenBelow15: 0,
+            childrenAbove15: 0,
+            total: 0
+          }
+        };
+      }
+
+      sortedPlaces.forEach((place) => {
+        // Get counts for each category
+        const familiesCount = processedData.families[district]?.[place]?.length || 0;
+        const singleGraduateMaleEmployed = processedData.singleGraduateMalesEmployed[district]?.[place]?.count || 0;
+        const singleGraduateFemaleEmployed = processedData.singleGraduateFemalesEmployed[district]?.[place]?.count || 0;
+        const singleGraduateMaleUnemployed = processedData.singleGraduateMalesUnemployed[district]?.[place]?.count || 0;
+        const singleGraduateFemaleUnemployed = processedData.singleGraduateFemalesUnemployed[district]?.[place]?.count || 0;
+        const studentsMale = processedData.maleStudents[district]?.[place]?.count || 0;
+        const studentsFemale = processedData.femaleStudents[district]?.[place]?.count || 0;
+        const volunteersMale = volunteerCounts.male[district]?.[place] || 0;
+        const volunteersFemale = volunteerCounts.female[district]?.[place] || 0;
+        
+        // Children: Below 15 = Below 10 + 10-14
+        const childrenBelow10 = processedData.childrenBelow10[district]?.[place]?.count || 0;
+        const children10to14 = processedData.children10to14[district]?.[place]?.count || 0;
+        const childrenBelow15 = childrenBelow10 + children10to14;
+        const childrenAbove15 = processedData.children15Plus[district]?.[place]?.count || 0;
+
+        // Calculate row total
+        const rowTotal = familiesCount +
+          singleGraduateMaleEmployed + singleGraduateFemaleEmployed +
+          singleGraduateMaleUnemployed + singleGraduateFemaleUnemployed +
+          studentsMale + studentsFemale +
+          volunteersMale + volunteersFemale +
+          childrenBelow15 + childrenAbove15;
+
+        summaryData[district].places.push({
+          place,
+          families: familiesCount,
+          singleGraduateMaleEmployed,
+          singleGraduateFemaleEmployed,
+          singleGraduateMaleUnemployed,
+          singleGraduateFemaleUnemployed,
+          studentsMale,
+          studentsFemale,
+          volunteersMale,
+          volunteersFemale,
+          childrenBelow15,
+          childrenAbove15,
+          total: rowTotal
+        });
+
+        // Add to district total
+        summaryData[district].districtTotal.families += familiesCount;
+        summaryData[district].districtTotal.singleGraduateMaleEmployed += singleGraduateMaleEmployed;
+        summaryData[district].districtTotal.singleGraduateFemaleEmployed += singleGraduateFemaleEmployed;
+        summaryData[district].districtTotal.singleGraduateMaleUnemployed += singleGraduateMaleUnemployed;
+        summaryData[district].districtTotal.singleGraduateFemaleUnemployed += singleGraduateFemaleUnemployed;
+        summaryData[district].districtTotal.studentsMale += studentsMale;
+        summaryData[district].districtTotal.studentsFemale += studentsFemale;
+        summaryData[district].districtTotal.volunteersMale += volunteersMale;
+        summaryData[district].districtTotal.volunteersFemale += volunteersFemale;
+        summaryData[district].districtTotal.childrenBelow15 += childrenBelow15;
+        summaryData[district].districtTotal.childrenAbove15 += childrenAbove15;
+        summaryData[district].districtTotal.total += rowTotal;
+
+        // Add to grand total
+        grandTotal.families += familiesCount;
+        grandTotal.singleGraduateMaleEmployed += singleGraduateMaleEmployed;
+        grandTotal.singleGraduateFemaleEmployed += singleGraduateFemaleEmployed;
+        grandTotal.singleGraduateMaleUnemployed += singleGraduateMaleUnemployed;
+        grandTotal.singleGraduateFemaleUnemployed += singleGraduateFemaleUnemployed;
+        grandTotal.studentsMale += studentsMale;
+        grandTotal.studentsFemale += studentsFemale;
+        grandTotal.volunteersMale += volunteersMale;
+        grandTotal.volunteersFemale += volunteersFemale;
+        grandTotal.childrenBelow15 += childrenBelow15;
+        grandTotal.childrenAbove15 += childrenAbove15;
+        grandTotal.total += rowTotal;
+      });
+    });
+
+    if (sortedDistricts.length === 0) return null;
+
+    return (
+      <div className="card shadow-sm mb-4">
+        <div className="card-header bg-warning text-dark">
+          <h5 className="mb-0 fw-bold">District & Place wise Consolidated Summary</h5>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-bordered table-striped mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th rowSpan="3" className="align-middle text-center" style={{ verticalAlign: "middle" }}>District</th>
+                  <th rowSpan="3" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Name of the EGF / ICEU</th>
+                  <th rowSpan="3" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Families</th>
+                  <th colSpan="4" className="text-center">Single Graduates</th>
+                  <th colSpan="2" className="text-center">Students</th>
+                  <th colSpan="2" className="text-center">Volunteers</th>
+                  <th colSpan="2" className="text-center">Children</th>
+                  <th rowSpan="3" className="align-middle text-center bg-warning" style={{ verticalAlign: "middle" }}>TOTAL</th>
+                </tr>
+                <tr>
+                  <th colSpan="2" className="text-center">Employed</th>
+                  <th colSpan="2" className="text-center">Unemployed</th>
+                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Male</th>
+                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Female</th>
+                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Male</th>
+                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Female</th>
+                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Below 15 Years</th>
+                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Above 15 Years</th>
+                </tr>
+                <tr>
+                  <th className="text-center">Male</th>
+                  <th className="text-center">Female</th>
+                  <th className="text-center">Male</th>
+                  <th className="text-center">Female</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedDistricts.map((district) => {
+                  const districtData = summaryData[district];
+                  const places = districtData.places;
+                  const districtTotal = districtData.districtTotal;
+                  
+                  return (
+                    <React.Fragment key={district}>
+                      {places.map((placeData, placeIndex) => {
+                        const isFirstPlace = placeIndex === 0;
+                        return (
+                          <tr key={`${district}-${placeData.place}`}>
+                            {isFirstPlace && (
+                              <td rowSpan={places.length + 1} className="fw-bold align-middle" style={{ verticalAlign: "middle" }}>
+                                {district}
+                              </td>
+                            )}
+                            <td className="fw-bold">{placeData.place}</td>
+                            <td className="text-center">{placeData.families}</td>
+                            <td className="text-center">{placeData.singleGraduateMaleEmployed}</td>
+                            <td className="text-center">{placeData.singleGraduateFemaleEmployed}</td>
+                            <td className="text-center">{placeData.singleGraduateMaleUnemployed}</td>
+                            <td className="text-center">{placeData.singleGraduateFemaleUnemployed}</td>
+                            <td className="text-center">{placeData.studentsMale}</td>
+                            <td className="text-center">{placeData.studentsFemale}</td>
+                            <td className="text-center">{placeData.volunteersMale}</td>
+                            <td className="text-center">{placeData.volunteersFemale}</td>
+                            <td className="text-center">{placeData.childrenBelow15}</td>
+                            <td className="text-center">{placeData.childrenAbove15}</td>
+                            <td className="text-center fw-bold bg-light">{placeData.total}</td>
+                          </tr>
+                        );
+                      })}
+                      {/* District Total Row */}
+                      <tr className="table-info fw-bold">
+                        <td className="bg-info text-white">Total ({district})</td>
+                        <td className="text-center bg-info text-white">{districtTotal.families}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.singleGraduateMaleEmployed}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.singleGraduateFemaleEmployed}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.singleGraduateMaleUnemployed}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.singleGraduateFemaleUnemployed}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.studentsMale}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.studentsFemale}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.volunteersMale}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.volunteersFemale}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.childrenBelow15}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.childrenAbove15}</td>
+                        <td className="text-center bg-warning text-dark">{districtTotal.total}</td>
+                      </tr>
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+              <tfoot className="table-dark">
+                <tr className="fw-bold">
+                  <td colSpan="2" className="bg-dark text-white">GRAND TOTAL</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.families}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.singleGraduateMaleEmployed}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.singleGraduateFemaleEmployed}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.singleGraduateMaleUnemployed}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.singleGraduateFemaleUnemployed}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.studentsMale}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.studentsFemale}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.volunteersMale}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.volunteersFemale}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.childrenBelow15}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.childrenAbove15}</td>
+                  <td className="text-center bg-warning text-dark">{grandTotal.total}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Helper component to render a table with names and counts
   const renderTableWithNames = (title, data, showNames = true) => {
     const districts = Object.keys(data).sort();
@@ -651,6 +1005,9 @@ export default function DistrictPlacePeopleDetails() {
         The Families table shows complete family composition including head of family, spouse, and children. 
         Children below 10 and 10-14 years from family registrations appear only in the Families table, not in the general Children Statistics tables.
       </div>
+
+      {/* Consolidated Summary Table */}
+      {renderSummaryTable()}
 
       {/* Male Students */}
       {renderTableWithNames("Male Students", processedData.maleStudents)}
