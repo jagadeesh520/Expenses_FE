@@ -114,9 +114,11 @@ export default function DistrictPlacePeopleDetails() {
   // Helper function to get gender
   const getGender = (gender) => {
     if (!gender) return null;
-    const g = gender.toLowerCase();
-    if (g.includes("male") || g.includes("m")) return "male";
-    if (g.includes("female") || g.includes("f")) return "female";
+    const g = gender.toLowerCase().trim();
+    // Check for "female" first (more specific) before "male" to avoid false matches
+    // "female" contains "male", so we must check "female" first
+    if (g.includes("female") || g === "f") return "female";
+    if (g.includes("male") || g === "m") return "male";
     return null;
   };
 
