@@ -384,7 +384,8 @@ export default function DistrictPlacePeopleDetails() {
       studentsFemale: 0,
       volunteersMale: 0,
       volunteersFemale: 0,
-      childrenBelow15: 0,
+      childrenBelow10: 0,
+      children10to14: 0,
       childrenAbove15: 0,
       total: 0
     };
@@ -463,7 +464,8 @@ export default function DistrictPlacePeopleDetails() {
             studentsFemale: 0,
             volunteersMale: 0,
             volunteersFemale: 0,
-            childrenBelow15: 0,
+            childrenBelow10: 0,
+            children10to14: 0,
             childrenAbove15: 0,
             total: 0
           }
@@ -482,10 +484,19 @@ export default function DistrictPlacePeopleDetails() {
         const volunteersMale = volunteerCounts.male[district]?.[place] || 0;
         const volunteersFemale = volunteerCounts.female[district]?.[place] || 0;
         
-        // Children: Below 15 = Below 10 + 10-14
-        const childrenBelow10 = processedData.childrenBelow10[district]?.[place]?.count || 0;
-        const children10to14 = processedData.children10to14[district]?.[place]?.count || 0;
-        const childrenBelow15 = childrenBelow10 + children10to14;
+        // Children: Extract counts from families section
+        // Children below 10 and 10-14 come from families, not individual registrations
+        const familiesInPlace = processedData.families[district]?.[place] || [];
+        let childrenBelow10 = 0;
+        let children10to14 = 0;
+        
+        // Sum up children counts from all families in this place
+        familiesInPlace.forEach(family => {
+          childrenBelow10 += family.childBelow10Count || 0;
+          children10to14 += family.child10to14Count || 0;
+        });
+        
+        // Children above 15 come from individual registrations (non-family)
         const childrenAbove15 = processedData.children15Plus[district]?.[place]?.count || 0;
 
         // Calculate row total
@@ -494,7 +505,7 @@ export default function DistrictPlacePeopleDetails() {
           singleGraduateMaleUnemployed + singleGraduateFemaleUnemployed +
           studentsMale + studentsFemale +
           volunteersMale + volunteersFemale +
-          childrenBelow15 + childrenAbove15;
+          childrenBelow10 + children10to14 + childrenAbove15;
 
         summaryData[district].places.push({
           place,
@@ -507,7 +518,8 @@ export default function DistrictPlacePeopleDetails() {
           studentsFemale,
           volunteersMale,
           volunteersFemale,
-          childrenBelow15,
+          childrenBelow10,
+          children10to14,
           childrenAbove15,
           total: rowTotal
         });
@@ -522,7 +534,8 @@ export default function DistrictPlacePeopleDetails() {
         summaryData[district].districtTotal.studentsFemale += studentsFemale;
         summaryData[district].districtTotal.volunteersMale += volunteersMale;
         summaryData[district].districtTotal.volunteersFemale += volunteersFemale;
-        summaryData[district].districtTotal.childrenBelow15 += childrenBelow15;
+        summaryData[district].districtTotal.childrenBelow10 += childrenBelow10;
+        summaryData[district].districtTotal.children10to14 += children10to14;
         summaryData[district].districtTotal.childrenAbove15 += childrenAbove15;
         summaryData[district].districtTotal.total += rowTotal;
 
@@ -536,7 +549,8 @@ export default function DistrictPlacePeopleDetails() {
         grandTotal.studentsFemale += studentsFemale;
         grandTotal.volunteersMale += volunteersMale;
         grandTotal.volunteersFemale += volunteersFemale;
-        grandTotal.childrenBelow15 += childrenBelow15;
+        grandTotal.childrenBelow10 += childrenBelow10;
+        grandTotal.children10to14 += children10to14;
         grandTotal.childrenAbove15 += childrenAbove15;
         grandTotal.total += rowTotal;
       });
@@ -576,7 +590,7 @@ export default function DistrictPlacePeopleDetails() {
                   <th colSpan="4" className="text-center">Single Graduates</th>
                   <th colSpan="2" className="text-center">Students</th>
                   <th colSpan="2" className="text-center">Volunteers</th>
-                  <th colSpan="2" className="text-center">Children</th>
+                  <th colSpan="3" className="text-center">Children</th>
                   <th rowSpan="3" className="align-middle text-center bg-warning" style={{ verticalAlign: "middle" }}>TOTAL</th>
                 </tr>
                 <tr>
@@ -586,7 +600,8 @@ export default function DistrictPlacePeopleDetails() {
                   <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Female</th>
                   <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Male</th>
                   <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Female</th>
-                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Below 15 Years</th>
+                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Below 10 Years</th>
+                  <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>10-14 Years</th>
                   <th rowSpan="2" className="align-middle text-center" style={{ verticalAlign: "middle" }}>Above 15 Years</th>
                 </tr>
                 <tr>
@@ -623,7 +638,8 @@ export default function DistrictPlacePeopleDetails() {
                             <td className="text-center">{placeData.studentsFemale}</td>
                             <td className="text-center">{placeData.volunteersMale}</td>
                             <td className="text-center">{placeData.volunteersFemale}</td>
-                            <td className="text-center">{placeData.childrenBelow15}</td>
+                            <td className="text-center">{placeData.childrenBelow10}</td>
+                            <td className="text-center">{placeData.children10to14}</td>
                             <td className="text-center">{placeData.childrenAbove15}</td>
                             <td className="text-center fw-bold bg-light">{placeData.total}</td>
                           </tr>
@@ -641,7 +657,8 @@ export default function DistrictPlacePeopleDetails() {
                         <td className="text-center bg-info text-white">{districtTotal.studentsFemale}</td>
                         <td className="text-center bg-info text-white">{districtTotal.volunteersMale}</td>
                         <td className="text-center bg-info text-white">{districtTotal.volunteersFemale}</td>
-                        <td className="text-center bg-info text-white">{districtTotal.childrenBelow15}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.childrenBelow10}</td>
+                        <td className="text-center bg-info text-white">{districtTotal.children10to14}</td>
                         <td className="text-center bg-info text-white">{districtTotal.childrenAbove15}</td>
                         <td className="text-center bg-warning text-dark">{districtTotal.total}</td>
                       </tr>
@@ -661,7 +678,8 @@ export default function DistrictPlacePeopleDetails() {
                   <td className="text-center bg-dark text-white">{grandTotal.studentsFemale}</td>
                   <td className="text-center bg-dark text-white">{grandTotal.volunteersMale}</td>
                   <td className="text-center bg-dark text-white">{grandTotal.volunteersFemale}</td>
-                  <td className="text-center bg-dark text-white">{grandTotal.childrenBelow15}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.childrenBelow10}</td>
+                  <td className="text-center bg-dark text-white">{grandTotal.children10to14}</td>
                   <td className="text-center bg-dark text-white">{grandTotal.childrenAbove15}</td>
                   <td className="text-center bg-warning text-dark">{grandTotal.total}</td>
                 </tr>
