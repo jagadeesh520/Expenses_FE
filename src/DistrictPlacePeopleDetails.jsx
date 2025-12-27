@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS } from "./constants";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { exportTableToExcel, exportTableToPDF } from "./utils/exportUtils";
 
 export default function DistrictPlacePeopleDetails() {
   const navigate = useNavigate();
@@ -37,6 +38,21 @@ export default function DistrictPlacePeopleDetails() {
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Export handler functions
+  const handleExportExcel = (tableId, tableName) => {
+    const tableElement = document.getElementById(tableId);
+    if (tableElement) {
+      exportTableToExcel(tableElement, tableName);
+    }
+  };
+
+  const handleExportPDF = (tableId, tableName, title) => {
+    const tableElement = document.getElementById(tableId);
+    if (tableElement) {
+      exportTableToPDF(tableElement, tableName, title);
     }
   };
 
@@ -530,12 +546,28 @@ export default function DistrictPlacePeopleDetails() {
 
     return (
       <div className="card shadow-sm mb-4">
-        <div className="card-header bg-warning text-dark">
+        <div className="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
           <h5 className="mb-0 fw-bold">District & Place wise Consolidated Summary</h5>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-sm btn-success"
+              onClick={() => handleExportExcel('summary-table', 'Consolidated_Summary')}
+              title="Download as Excel"
+            >
+              <i className="bi bi-file-earmark-excel me-1"></i>Excel
+            </button>
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={() => handleExportPDF('summary-table', 'Consolidated_Summary', 'District & Place wise Consolidated Summary')}
+              title="Download as PDF"
+            >
+              <i className="bi bi-file-earmark-pdf me-1"></i>PDF
+            </button>
+          </div>
         </div>
         <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-bordered table-striped mb-0">
+            <table id="summary-table" className="table table-bordered table-striped mb-0">
               <thead className="table-light">
                 <tr>
                   <th rowSpan="3" className="align-middle text-center" style={{ verticalAlign: "middle" }}>District</th>
@@ -646,14 +678,33 @@ export default function DistrictPlacePeopleDetails() {
     const districts = Object.keys(data).sort();
     if (districts.length === 0) return null;
 
+    const tableId = `table-${title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+    const filename = title.replace(/[^a-zA-Z0-9]/g, '_');
+
     return (
       <div className="card shadow-sm mb-4">
-        <div className="card-header bg-primary text-white">
+        <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">{title}</h5>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-sm btn-success"
+              onClick={() => handleExportExcel(tableId, filename)}
+              title="Download as Excel"
+            >
+              <i className="bi bi-file-earmark-excel me-1"></i>Excel
+            </button>
+            <button
+              className="btn btn-sm btn-light"
+              onClick={() => handleExportPDF(tableId, filename, title)}
+              title="Download as PDF"
+            >
+              <i className="bi bi-file-earmark-pdf me-1"></i>PDF
+            </button>
+          </div>
         </div>
         <div className="card-body">
           <div className="table-responsive">
-            <table className="table table-bordered table-striped">
+            <table id={tableId} className="table table-bordered table-striped">
               <thead className="table-light">
                 <tr>
                   <th>District</th>
@@ -786,14 +837,33 @@ export default function DistrictPlacePeopleDetails() {
       districtGroups[placeData.district].push(placeData);
     });
 
+    const tableId = `table-${title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+    const filename = title.replace(/[^a-zA-Z0-9]/g, '_');
+
     return (
       <div className="card shadow-sm mb-4">
-        <div className="card-header bg-success text-white">
+        <div className="card-header bg-success text-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">{title}</h5>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-sm btn-light"
+              onClick={() => handleExportExcel(tableId, filename)}
+              title="Download as Excel"
+            >
+              <i className="bi bi-file-earmark-excel me-1"></i>Excel
+            </button>
+            <button
+              className="btn btn-sm btn-light"
+              onClick={() => handleExportPDF(tableId, filename, title)}
+              title="Download as PDF"
+            >
+              <i className="bi bi-file-earmark-pdf me-1"></i>PDF
+            </button>
+          </div>
         </div>
         <div className="card-body">
           <div className="table-responsive">
-            <table className="table table-bordered table-striped">
+            <table id={tableId} className="table table-bordered table-striped">
               <thead className="table-light">
                 <tr>
                   <th>District</th>
@@ -911,14 +981,33 @@ export default function DistrictPlacePeopleDetails() {
     const districts = Object.keys(data).sort();
     if (districts.length === 0) return null;
 
+    const tableId = `table-${title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+    const filename = title.replace(/[^a-zA-Z0-9]/g, '_');
+
     return (
       <div className="card shadow-sm mb-4">
-        <div className="card-header bg-info text-white">
+        <div className="card-header bg-info text-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">{title}</h5>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-sm btn-success"
+              onClick={() => handleExportExcel(tableId, filename)}
+              title="Download as Excel"
+            >
+              <i className="bi bi-file-earmark-excel me-1"></i>Excel
+            </button>
+            <button
+              className="btn btn-sm btn-light"
+              onClick={() => handleExportPDF(tableId, filename, title)}
+              title="Download as PDF"
+            >
+              <i className="bi bi-file-earmark-pdf me-1"></i>PDF
+            </button>
+          </div>
         </div>
         <div className="card-body">
           <div className="table-responsive">
-            <table className="table table-bordered table-striped">
+            <table id={tableId} className="table table-bordered table-striped">
               <thead className="table-light">
                 <tr>
                   <th>District</th>

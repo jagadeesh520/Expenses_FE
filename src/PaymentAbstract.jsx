@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from "./constants";
 import { getTotalAmount } from "./utils/pricingUtils";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { exportTableToExcel, exportTableToPDF } from "./utils/exportUtils";
 
 export default function PaymentAbstract() {
   const navigate = useNavigate();
@@ -48,6 +49,21 @@ export default function PaymentAbstract() {
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Export handler functions
+  const handleExportExcel = (tableId, tableName) => {
+    const tableElement = document.getElementById(tableId);
+    if (tableElement) {
+      exportTableToExcel(tableElement, tableName);
+    }
+  };
+
+  const handleExportPDF = (tableId, tableName, title) => {
+    const tableElement = document.getElementById(tableId);
+    if (tableElement) {
+      exportTableToPDF(tableElement, tableName, title);
     }
   };
 
@@ -363,12 +379,28 @@ export default function PaymentAbstract() {
         {/* All-Districts Abstract */}
         <div className="col-12">
           <div className="card shadow-sm">
-            <div className="card-header bg-success text-white">
+            <div className="card-header bg-success text-white d-flex justify-content-between align-items-center">
               <h5 className="mb-0">All-Districts Abstract</h5>
+              <div className="d-flex gap-2">
+                <button
+                  className="btn btn-sm btn-light"
+                  onClick={() => handleExportExcel('all-districts-table', 'All_Districts_Abstract')}
+                  title="Download as Excel"
+                >
+                  <i className="bi bi-file-earmark-excel me-1"></i>Excel
+                </button>
+                <button
+                  className="btn btn-sm btn-light"
+                  onClick={() => handleExportPDF('all-districts-table', 'All_Districts_Abstract', 'All-Districts Abstract')}
+                  title="Download as PDF"
+                >
+                  <i className="bi bi-file-earmark-pdf me-1"></i>PDF
+                </button>
+              </div>
             </div>
             <div className="card-body">
               <div className="table-responsive">
-                <table className="table table-bordered table-striped">
+                <table id="all-districts-table" className="table table-bordered table-striped">
                   <thead className="table-light">
                     <tr>
                       <th>District</th>
@@ -438,12 +470,28 @@ export default function PaymentAbstract() {
         {/* District-wise Amount Collection */}
         <div className="col-12 col-md-6">
           <div className="card shadow-sm">
-            <div className="card-header bg-warning text-dark">
+            <div className="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
               <h5 className="mb-0">District-wise Amount Collection</h5>
+              <div className="d-flex gap-2">
+                <button
+                  className="btn btn-sm btn-success"
+                  onClick={() => handleExportExcel('district-collection-table', 'District_wise_Amount_Collection')}
+                  title="Download as Excel"
+                >
+                  <i className="bi bi-file-earmark-excel me-1"></i>Excel
+                </button>
+                <button
+                  className="btn btn-sm btn-danger"
+                  onClick={() => handleExportPDF('district-collection-table', 'District_wise_Amount_Collection', 'District-wise Amount Collection')}
+                  title="Download as PDF"
+                >
+                  <i className="bi bi-file-earmark-pdf me-1"></i>PDF
+                </button>
+              </div>
             </div>
             <div className="card-body">
               <div className="table-responsive">
-                <table className="table table-bordered table-striped table-sm">
+                <table id="district-collection-table" className="table table-bordered table-striped table-sm">
                   <thead className="table-light">
                     <tr>
                       <th>District</th>
@@ -489,12 +537,28 @@ export default function PaymentAbstract() {
         {/* Category-wise Amount Summary */}
         <div className="col-12 col-md-6">
           <div className="card shadow-sm">
-            <div className="card-header bg-secondary text-white">
+            <div className="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Category-wise / Group-wise Amount Summary</h5>
+              <div className="d-flex gap-2">
+                <button
+                  className="btn btn-sm btn-success"
+                  onClick={() => handleExportExcel('category-summary-table', 'Category_wise_Amount_Summary')}
+                  title="Download as Excel"
+                >
+                  <i className="bi bi-file-earmark-excel me-1"></i>Excel
+                </button>
+                <button
+                  className="btn btn-sm btn-light"
+                  onClick={() => handleExportPDF('category-summary-table', 'Category_wise_Amount_Summary', 'Category-wise / Group-wise Amount Summary')}
+                  title="Download as PDF"
+                >
+                  <i className="bi bi-file-earmark-pdf me-1"></i>PDF
+                </button>
+              </div>
             </div>
             <div className="card-body">
               <div className="table-responsive">
-                <table className="table table-bordered table-striped table-sm">
+                <table id="category-summary-table" className="table table-bordered table-striped table-sm">
                   <thead className="table-light">
                     <tr>
                       <th>Category</th>
