@@ -56,6 +56,9 @@ export default function SPICONRegistration() {
   
   // --- Define the Region for API Submission ---
   const REGION_NAME = "West Rayalaseema";
+  
+  // --- Registration Status ---
+  const REGISTRATIONS_CLOSED = true; // Set to true to close registrations
 
   const handle = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -111,6 +114,34 @@ export default function SPICONRegistration() {
     }
     // Note: setLoading(false) is intentionally removed here, as navigation unmounts the component on success.
   };
+
+  // If registrations are closed, show only the closed message
+  if (REGISTRATIONS_CLOSED) {
+    return (
+      <div className="container py-5" style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="text-center" style={{ maxWidth: "600px", padding: "40px" }}>
+          <div className="mb-4">
+            <i className="bi bi-x-circle-fill" style={{ fontSize: "5rem", color: "#dc3545" }}></i>
+          </div>
+          <h1 className="fw-bold mb-3" style={{ color: "#dc3545" }}>Registrations Closed</h1>
+          <p className="lead mb-4">
+            Registrations for West Rayalaseema SPICON-2026 are now closed.
+          </p>
+          <p className="text-muted">
+            We are no longer accepting new registrations for this region.
+          </p>
+          <div className="mt-4">
+            <button 
+              className="btn btn-outline-primary"
+              onClick={() => navigate("/")}
+            >
+              <i className="bi bi-house me-2"></i>Go to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-4">
