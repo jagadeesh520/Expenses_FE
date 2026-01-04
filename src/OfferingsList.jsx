@@ -13,31 +13,66 @@ export default function OfferingsList() {
 
   // Filter to identify gifts
   const isGift = (item) => {
+    // #region agent log
+    const checkResults = {
+      hasTypeGift: item.type === "gift",
+      typeValue: item.type,
+      fullName: item.fullName || item.name || "",
+      hasPurpose: !!item.purpose,
+      hasTransactionId: !!item.transactionId,
+      hasAmountPaid: !!item.amountPaid,
+      hasDtcAttended: !!item.dtcAttended,
+      hasIceuEgf: !!item.iceuEgf,
+      hasRecommendedByRole: !!item.recommendedByRole,
+      hasArrivalTime: !!item.arrivalTime,
+      hasUniqueId: !!item.uniqueId,
+      hasSpiconId: !!item.spiconId
+    };
+    // #endregion
+
     // Primary: Check if type field is "gift"
     if (item.type === "gift") {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsList.jsx:isGift',message:'Gift identified by type field',data:{...checkResults,result:true,reason:'type===gift'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       return true;
     }
     
     // Fallback 1: Check if fullName or name indicates non-registered gift
     const name = item.fullName || item.name || "";
     if (name === "Gift - Non-Registered") {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsList.jsx:isGift',message:'Gift identified by name pattern',data:{...checkResults,result:true,reason:'name===Gift - Non-Registered'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       return true;
     }
     
     // Fallback 2: Check if purpose field exists (gifts have this optional field)
     if (item.purpose) {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsList.jsx:isGift',message:'Gift identified by purpose field',data:{...checkResults,result:true,reason:'hasPurpose'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       return true;
     }
     
     // Fallback 3: Check if it has transactionId and amountPaid but lacks key registration-specific fields
-    // Gifts have transactionId and amountPaid but typically don't have dtcAttended, iceuEgf, recommendedByRole, etc.
+    // Gifts have transactionId and amountPaid but typically don't have dtcAttended, recommendedByRole, arrivalTime, uniqueId
+    // Note: Non-registered gifts may have iceuEgf (from the form), but they won't have uniqueId or other registration fields
     const hasGiftFields = item.transactionId && item.amountPaid;
-    const lacksRegistrationFields = !item.dtcAttended && !item.iceuEgf && !item.recommendedByRole && !item.arrivalTime;
+    // For gifts: they lack uniqueId (SPICON ID) and other registration-specific fields
+    // Non-registered gifts may have iceuEgf but won't have uniqueId, dtcAttended, recommendedByRole, arrivalTime
+    const lacksRegistrationFields = !item.uniqueId && !item.dtcAttended && !item.recommendedByRole && !item.arrivalTime;
     
     if (hasGiftFields && lacksRegistrationFields) {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsList.jsx:isGift',message:'Gift identified by field pattern',data:{...checkResults,result:true,reason:'hasGiftFields&&lacksRegistrationFields'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       return true;
     }
     
+    // #region agent log
+    fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsList.jsx:isGift',message:'Not identified as gift',data:{...checkResults,result:false,reason:'noMatch'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     return false;
   };
 
@@ -63,8 +98,14 @@ export default function OfferingsList() {
       const result = await res.json();
       
       if (result.success) {
+        // #region agent log
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsList.jsx:fetchList',message:'Data fetched successfully',data:{totalRecords:result.data.length,firstRecordSample:result.data[0]?{type:result.data[0].type,fullName:result.data[0].fullName,hasTransactionId:!!result.data[0].transactionId}:null},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'F'})}).catch(()=>{});
+        // #endregion
         // Filter to show only gifts
         const gifts = result.data.filter(isGift);
+        // #region agent log
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsList.jsx:fetchList',message:'Gifts filtered',data:{totalRecords:result.data.length,giftsCount:gifts.length,filteredOut:result.data.length-gifts.length},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'G'})}).catch(()=>{});
+        // #endregion
         console.log(`Found ${gifts.length} gifts out of ${result.data.length} total records`);
         
         // Enrich gifts with SPICON ID from registration data

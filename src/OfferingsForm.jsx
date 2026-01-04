@@ -113,6 +113,10 @@ export default function OfferingsForm() {
     setLoading(true);
 
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsForm.jsx:handleSubmit-entry',message:'Form submission started',data:{isRegistered:isRegistered,region:region,formDataKeys:Object.keys(formData),hasScreenshot:!!screenshot,apiEndpoint:API_ENDPOINTS.REGISTER_CUSTOMER},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+
       const fd = new FormData();
       
       // Add gift-specific fields
@@ -121,6 +125,8 @@ export default function OfferingsForm() {
       fd.append("transactionId", formData.transactionId);
       fd.append("amountPaid", formData.paidAmount);
       fd.append("dateOfPayment", formData.paymentDate);
+      // Disable email sending for gifts
+      fd.append("sendEmail", "false");
       if (formData.purpose) {
         fd.append("purpose", formData.purpose);
       }
@@ -137,6 +143,9 @@ export default function OfferingsForm() {
         fd.append("groupType", candidateData.groupType || "Volunteers");
       } else if (!isRegistered) {
         // For non-registered users, include their provided details from form
+        // #region agent log
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsForm.jsx:handleSubmit-nonRegistered',message:'Adding non-registered user fields',data:{email:formData.email,fullName:formData.fullName,mobile:formData.mobile,district:formData.district,iceuEgf:formData.iceuEgf},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
         fd.append("email", formData.email || "");
         fd.append("fullName", formData.fullName || "");
         fd.append("mobile", formData.mobile || "");
@@ -152,12 +161,29 @@ export default function OfferingsForm() {
         fd.append("paymentScreenshot", screenshot);
       }
 
+      // #region agent log
+      const formDataEntries = [];
+      for (const [key, value] of fd.entries()) {
+        formDataEntries.push({key: key, value: typeof value === 'object' ? value.name || 'File' : value});
+      }
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsForm.jsx:handleSubmit-beforeFetch',message:'FormData prepared, about to fetch',data:{apiEndpoint:API_ENDPOINTS.REGISTER_CUSTOMER,formDataEntries:formDataEntries,formDataSize:formDataEntries.length},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+
+      // #region agent log
+      let fetchStartTime = Date.now();
+      // #endregion
       const res = await fetch(API_ENDPOINTS.REGISTER_CUSTOMER, {
         method: "POST",
         body: fd,
       });
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsForm.jsx:handleSubmit-afterFetch',message:'Fetch completed',data:{status:res.status,statusText:res.statusText,ok:res.ok,url:res.url,fetchDuration:Date.now()-fetchStartTime},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
 
       const data = await res.json();
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsForm.jsx:handleSubmit-afterJson',message:'Response parsed',data:{success:data.success,error:data.error,message:data.message},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
 
       if (!res.ok) {
         throw new Error(data.error || "Submission failed");
@@ -176,6 +202,9 @@ export default function OfferingsForm() {
         },
       });
     } catch (err) {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsForm.jsx:handleSubmit-catch',message:'Error caught',data:{errorName:err.name,errorMessage:err.message,errorStack:err.stack,isNetworkError:err.message.includes('fetch')||err.message.includes('Failed to fetch'),apiEndpoint:API_ENDPOINTS.REGISTER_CUSTOMER},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
       console.error("Error submitting gift:", err);
       setError(err.message || "Failed to submit gift. Please try again.");
       setLoading(false);
