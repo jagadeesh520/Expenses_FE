@@ -458,7 +458,7 @@ Failed: ${data.data.totalFailed}`;
             </div>
           </div>
 
-          {/* Offering List Module */}
+          {/* Gift List Module */}
           <div className="col-12 col-md-6 col-lg-5">
             <div
               className="card shadow-sm dashboard-module"
@@ -469,7 +469,7 @@ Failed: ${data.data.totalFailed}`;
                 border: "2px solid #9333ea",
                 borderLeft: "4px solid #9333ea"
               }}
-              onClick={() => navigate("/offerings-list")}
+              onClick={() => navigate("/gifts-list")}
             >
               <div className="card-body p-3">
                 <div className="d-flex align-items-center">
@@ -477,9 +477,9 @@ Failed: ${data.data.totalFailed}`;
                     <i className="bi bi-gift-fill" style={{ fontSize: "32px", color: "#9333ea" }}></i>
                   </div>
                   <div className="flex-grow-1 ms-3">
-                    <h5 className="fw-bold mb-1" style={{ fontSize: "16px" }}>Offering List</h5>
+                    <h5 className="fw-bold mb-1" style={{ fontSize: "16px" }}>Gift List</h5>
                     <p className="text-muted mb-0 small">
-                      View all submitted offerings
+                      View all submitted gifts
                     </p>
                   </div>
                   <div className="flex-shrink-0">

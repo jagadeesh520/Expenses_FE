@@ -61,7 +61,7 @@ export default function OfferingsSpiconValidation() {
       return;
     }
 
-    navigate("/offerings-form", {
+    navigate("/gifts-form", {
       state: {
         region,
         isRegistered: true,
@@ -80,7 +80,7 @@ export default function OfferingsSpiconValidation() {
           </p>
           <button
             className="btn btn-outline-secondary"
-            onClick={() => navigate("/offerings-registration-check", { state: { region } })}
+            onClick={() => navigate("/gifts-registration-check", { state: { region } })}
           >
             <i className="bi bi-arrow-left me-2"></i>Back
           </button>
@@ -204,13 +204,13 @@ export default function OfferingsSpiconValidation() {
             onClick={handleContinue}
             disabled={!validated || !candidateData}
           >
-            Continue to Offering Form
+            Continue to Gift Form
           </button>
 
           <button
             className="btn btn-outline-secondary"
             onClick={() =>
-              navigate("/offerings-registration-check", { state: { region } })
+              navigate("/gifts-registration-check", { state: { region } })
             }
           >
             <i className="bi bi-arrow-left me-2"></i>Back

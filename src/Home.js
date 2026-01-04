@@ -131,16 +131,16 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Offerings */}
+              {/* Gifts */}
               <div className="col-6">
                 <div
                   className="login-box"
                   style={{ background: "#f3e8ff", borderColor: "#9333ea" }}
-                  onClick={() => navigate("/offerings-region")}
+                  onClick={() => navigate("/gifts-region")}
                 >
                   <i className="bi bi-gift-fill icon" style={{ color: "#9333ea" }}></i>
-                  <h5 className="fw-bold mt-2">Offerings</h5>
-                  <span>Submit Your Offerings</span>
+                  <h5 className="fw-bold mt-2">Gifts</h5>
+                  <span>Submit Your Gifts</span>
                 </div>
               </div>
             </div>

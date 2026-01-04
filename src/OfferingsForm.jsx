@@ -19,6 +19,12 @@ export default function OfferingsForm() {
     paidAmount: "",
     paymentDate: "",
     purpose: "",
+    // Non-registered user fields
+    email: "",
+    fullName: "",
+    mobile: "",
+    district: "",
+    iceuEgf: "",
   });
   const [screenshot, setScreenshot] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -58,6 +64,41 @@ export default function OfferingsForm() {
       setError("Please upload a payment screenshot");
       return false;
     }
+    
+    // Validate non-registered user fields if not registered
+    if (!isRegistered) {
+      if (!formData.email.trim()) {
+        setError("Email is required");
+        return false;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        setError("Please enter a valid email address");
+        return false;
+      }
+      if (!formData.fullName.trim()) {
+        setError("Full Name is required");
+        return false;
+      }
+      if (!formData.mobile.trim()) {
+        setError("Mobile Number is required");
+        return false;
+      }
+      const mobileRegex = /^[0-9]{10,}$/;
+      if (!mobileRegex.test(formData.mobile.trim().replace(/\D/g, ""))) {
+        setError("Please enter a valid mobile number (at least 10 digits)");
+        return false;
+      }
+      if (!formData.district) {
+        setError("District is required");
+        return false;
+      }
+      if (!formData.iceuEgf) {
+        setError("ICEU / EGF is required");
+        return false;
+      }
+    }
+    
     return true;
   };
 
@@ -74,8 +115,8 @@ export default function OfferingsForm() {
     try {
       const fd = new FormData();
       
-      // Add offering-specific fields
-      fd.append("type", "offering");
+      // Add gift-specific fields
+      fd.append("type", "gift");
       fd.append("region", region);
       fd.append("transactionId", formData.transactionId);
       fd.append("amountPaid", formData.paidAmount);
@@ -94,9 +135,14 @@ export default function OfferingsForm() {
         fd.append("uniqueId", candidateData.uniqueId || "");
         // Use candidate's groupType if available, otherwise default to "Volunteers"
         fd.append("groupType", candidateData.groupType || "Volunteers");
-      } else {
-        // For non-registered users, we still need some basic fields
-        fd.append("fullName", "Offering - Non-Registered");
+      } else if (!isRegistered) {
+        // For non-registered users, include their provided details from form
+        fd.append("email", formData.email || "");
+        fd.append("fullName", formData.fullName || "");
+        fd.append("mobile", formData.mobile || "");
+        fd.append("district", formData.district || "");
+        fd.append("iceuEgf", formData.iceuEgf || "");
+        // Do NOT append spiconId or uniqueId for non-registered users
         // Backend requires groupType, so use a default value
         fd.append("groupType", "Volunteers");
       }
@@ -118,18 +164,20 @@ export default function OfferingsForm() {
       }
 
       // Navigate to success page
-      navigate("/offerings-success", {
+      navigate("/gifts-success", {
         state: {
           region,
           transactionId: formData.transactionId,
           amount: formData.paidAmount,
           isRegistered,
-          candidateName: candidateData?.name || candidateData?.fullName || "",
+          candidateName: isRegistered 
+            ? (candidateData?.name || candidateData?.fullName || "")
+            : (formData.fullName || ""),
         },
       });
     } catch (err) {
-      console.error("Error submitting offering:", err);
-      setError(err.message || "Failed to submit offering. Please try again.");
+      console.error("Error submitting gift:", err);
+      setError(err.message || "Failed to submit gift. Please try again.");
       setLoading(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -140,7 +188,7 @@ export default function OfferingsForm() {
       <div className="container min-vh-100 d-flex align-items-center justify-content-center">
         <div className="card p-5 shadow-lg text-center" style={{ maxWidth: "500px" }}>
           <p className="text-danger mb-3">Region not selected. Please go back and select a region.</p>
-          <button className="btn btn-outline-secondary" onClick={() => navigate("/offerings-region")}>
+          <button className="btn btn-outline-secondary" onClick={() => navigate("/gifts-region")}>
             <i className="bi bi-arrow-left me-2"></i>Back to Region Selection
           </button>
         </div>
@@ -154,9 +202,9 @@ export default function OfferingsForm() {
         className="btn btn-outline-secondary mb-3"
         onClick={() => {
           if (isRegistered) {
-            navigate("/offerings-spicon-validation", { state: { region, isRegistered: true } });
+            navigate("/gifts-spicon-validation", { state: { region, isRegistered: true } });
           } else {
-            navigate("/offerings-registration-check", { state: { region } });
+            navigate("/gifts-registration-check", { state: { region } });
           }
         }}
       >
@@ -177,7 +225,7 @@ export default function OfferingsForm() {
           alt="SPICON Logo"
           style={{ width: "120px", marginBottom: "15px" }}
         />
-        <h2 className="fw-bold mb-2">Offerings Form</h2>
+        <h2 className="fw-bold mb-2">Gifts Form</h2>
         <p className="text-muted mb-3">
           Region: <strong>{region}</strong>
         </p>
@@ -185,6 +233,11 @@ export default function OfferingsForm() {
           <div className="alert alert-info d-inline-block">
             <strong>Registered Candidate:</strong> {candidateData.name || candidateData.fullName} 
             {spiconId && <span className="ms-2">({spiconId})</span>}
+          </div>
+        )}
+        {!isRegistered && (
+          <div className="alert alert-warning d-inline-block">
+            <strong>Non-Registered User:</strong> Please fill in your details below along with payment information.
           </div>
         )}
       </div>
@@ -276,10 +329,192 @@ export default function OfferingsForm() {
       <form onSubmit={handleSubmit}>
         <div className="card">
           <div className="card-header bg-secondary text-white">
-            <h5 className="mb-0 fw-bold">Offering Details</h5>
+            <h5 className="mb-0 fw-bold">Gift Details</h5>
           </div>
           <div className="card-body">
             <div className="row g-3">
+              {/* Non-Registered User Fields - Show when not registered */}
+              {!isRegistered && (
+                <>
+                  <div className="col-12">
+                    <h6 className="fw-bold mb-3 text-primary">
+                      <i className="bi bi-person-fill me-2"></i>Your Details
+                    </h6>
+                  </div>
+                  
+                  {/* Email */}
+                  <div className="col-12 col-md-6">
+                    <label htmlFor="email" className="form-label">
+                      Email <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter your email"
+                    />
+                  </div>
+
+                  {/* Full Name */}
+                  <div className="col-12 col-md-6">
+                    <label htmlFor="fullName" className="form-label">
+                      Enter Full Name <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="fullName"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+
+                  {/* Mobile Number */}
+                  <div className="col-12 col-md-6">
+                    <label htmlFor="mobile" className="form-label">
+                      Mobile Number <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      id="mobile"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={handleChange}
+                      required
+                      placeholder="e.g. 98XXXXXXXX"
+                    />
+                  </div>
+
+                  {/* District */}
+                  <div className="col-12 col-md-6">
+                    <label htmlFor="district" className="form-label">
+                      District <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      className="form-select"
+                      id="district"
+                      name="district"
+                      value={formData.district}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select</option>
+                      {region === "East Rayalaseema" ? (
+                        <>
+                          <option value="Annamayya">Annamayya</option>
+                          <option value="Chittoor">Chittoor</option>
+                          <option value="Tirupati">Tirupati</option>
+                          <option value="Other">Other</option>
+                        </>
+                      ) : region === "West Rayalaseema" ? (
+                        <>
+                          <option value="Anantapur">Anantapur</option>
+                          <option value="Sri Sathya Sai">Sri Sathya Sai</option>
+                          <option value="YSR Kadapa">YSR Kadapa</option>
+                          <option value="Other">Other</option>
+                        </>
+                      ) : null}
+                    </select>
+                  </div>
+
+                  {/* ICEU/EGF */}
+                  <div className="col-12 col-md-6">
+                    <label htmlFor="iceuEgf" className="form-label">
+                      Which ICEU / EGF do you belong to? <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      className="form-select"
+                      id="iceuEgf"
+                      name="iceuEgf"
+                      value={formData.iceuEgf}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Choose</option>
+                      {region === "East Rayalaseema" ? (
+                        <>
+                          <option value="Koduru">Koduru</option>
+                          <option value="Rajampeta">Rajampeta</option>
+                          <option value="Madanapalle">Madanapalle</option>
+                          <option value="Rayachoti">Rayachoti</option>
+                          <option value="Kalikiri">Kalikiri</option>
+                          <option value="Pileru">Pileru</option>
+                          <option value="Chittoor">Chittoor</option>
+                          <option value="Punganoor">Punganoor</option>
+                          <option value="Palamaneru">Palamaneru</option>
+                          <option value="Kuppam">Kuppam</option>
+                          <option value="V.Kota">V.Kota</option>
+                          <option value="Tirupati">Tirupati</option>
+                          <option value="Renigunta">Renigunta</option>
+                          <option value="Sattivedu">Sattivedu</option>
+                          <option value="Srikalahasthi">Srikalahasthi</option>
+                          <option value="Naidupeta">Naidupeta</option>
+                          <option value="Sullurpeta">Sullurpeta</option>
+                          <option value="Gudur">Gudur</option>
+                          <option value="Venkatagiri">Venkatagiri</option>
+                          <option value="Pakala">Pakala</option>
+                          <option value="Puttoor">Puttoor</option>
+                          <option value="IIT-Tirupati">IIT-Tirupati</option>
+                          <option value="Other">Other</option>
+                        </>
+                      ) : region === "West Rayalaseema" ? (
+                        <>
+                          <option value="Anantapur East Zone">Anantapur East Zone</option>
+                          <option value="Anantapur West Zone">Anantapur West Zone</option>
+                          <option value="Anantapur JNTU Zone">Anantapur JNTU Zone</option>
+                          <option value="Atp West Zone">Atp West Zone</option>
+                          <option value="Badvel">Badvel</option>
+                          <option value="Bukkarayasamudram">Bukkarayasamudram</option>
+                          <option value="Dharmavaram">Dharmavaram</option>
+                          <option value="Gooty">Gooty</option>
+                          <option value="Guntakal">Guntakal</option>
+                          <option value="Hindupur">Hindupur</option>
+                          <option value="IIIT Idupulapaya">IIIT Idupulapaya</option>
+                          <option value="Jammalamadugu">Jammalamadugu</option>
+                          <option value="Kadapa">Kadapa</option>
+                          <option value="Kadiri">Kadiri</option>
+                          <option value="Kalyandurg">Kalyandurg</option>
+                          <option value="Kamalapuram">Kamalapuram</option>
+                          <option value="Lepakshi">Lepakshi</option>
+                          <option value="Madakasira">Madakasira</option>
+                          <option value="Mydukur">Mydukur</option>
+                          <option value="Pamidi">Pamidi</option>
+                          <option value="Penukonda">Penukonda</option>
+                          <option value="Proddatur">Proddatur</option>
+                          <option value="Pulivendula">Pulivendula</option>
+                          <option value="Puttaparthi">Puttaparthi</option>
+                          <option value="Rayadurg">Rayadurg</option>
+                          <option value="Rolla">Rolla</option>
+                          <option value="Tadpatri">Tadpatri</option>
+                          <option value="Uravakonda">Uravakonda</option>
+                          <option value="Vempalli">Vempalli</option>
+                          <option value="Yerraguntla">Yerraguntla</option>
+                          <option value="Yogi Vemana University Campus">Yogi Vemana University Campus</option>
+                          <option value="Sri Krishnadevaraya University (SKU)">Sri Krishnadevaraya University (SKU)</option>
+                          <option value="Central University (CU)">Central University (CU)</option>
+                          <option value="Other">Other</option>
+                        </>
+                      ) : null}
+                    </select>
+                  </div>
+
+                  <div className="col-12">
+                    <hr className="my-3" />
+                    <h6 className="fw-bold mb-3 text-primary">
+                      <i className="bi bi-credit-card-fill me-2"></i>Payment Details
+                    </h6>
+                  </div>
+                </>
+              )}
+
               {/* Transaction ID */}
               <div className="col-12 col-md-6">
                 <label htmlFor="transactionId" className="form-label">
@@ -357,7 +592,7 @@ export default function OfferingsForm() {
               {/* Purpose (Optional) */}
               <div className="col-12">
                 <label htmlFor="purpose" className="form-label">
-                  If you would like this offering to be used for a specific purpose, please mention it
+                  If you would like this gift to be used for a specific purpose, please mention it
                   <span className="text-muted"> (Optional)</span>
                 </label>
                 <textarea
@@ -388,7 +623,7 @@ export default function OfferingsForm() {
                       Submitting...
                     </>
                   ) : (
-                    "Submit Offering"
+                    "Submit Gift"
                   )}
                 </button>
               </div>

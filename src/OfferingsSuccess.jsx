@@ -6,7 +6,7 @@ const OfferingsSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Retrieve data passed from the offering form
+  // Retrieve data passed from the gift form
   const { region, transactionId, amount, isRegistered, candidateName } =
     location.state || {};
 
@@ -22,12 +22,12 @@ const OfferingsSuccess = () => {
 
           <h2 className="text-success fw-bold mb-3">
             <i className="bi bi-check-circle-fill me-2"></i>
-            Offering Submitted Successfully!
+            Gift Submitted Successfully!
           </h2>
 
           {isRegistered && candidateName && (
             <p className="lead mb-3">
-              Thank you <strong>{candidateName}</strong> for your offering.
+              Thank you <strong>{candidateName}</strong> for your gift.
             </p>
           )}
 
@@ -39,7 +39,7 @@ const OfferingsSuccess = () => {
                 className="bi bi-check-circle-fill text-success me-2"
                 style={{ fontSize: "24px" }}
               ></i>
-              <h5 className="mb-0 text-success fw-bold">Offering Received!</h5>
+              <h5 className="mb-0 text-success fw-bold">Gift Received!</h5>
             </div>
 
             <div className="text-start mt-4">
@@ -65,7 +65,7 @@ const OfferingsSuccess = () => {
             </div>
 
             <p className="mt-4 mb-0">
-              Your offering has been successfully submitted. We appreciate your
+              Your gift has been successfully submitted. We appreciate your
               generous contribution.
             </p>
           </div>

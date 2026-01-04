@@ -16,12 +16,15 @@ export default function OfferingsRegistrationCheck() {
     }
 
     if (isRegistered) {
-      navigate("/offerings-spicon-validation", { 
+      navigate("/gifts-spicon-validation", { 
         state: { region, isRegistered: true } 
       });
     } else {
-      navigate("/offerings-form", { 
-        state: { region, isRegistered: false } 
+      navigate("/gifts-form", { 
+        state: { 
+          region, 
+          isRegistered: false
+        } 
       });
     }
   };
@@ -31,7 +34,7 @@ export default function OfferingsRegistrationCheck() {
       <div className="container min-vh-100 d-flex align-items-center justify-content-center">
         <div className="card p-5 shadow-lg text-center" style={{ maxWidth: "500px" }}>
           <p className="text-danger mb-3">Region not selected. Please go back and select a region.</p>
-          <button className="btn btn-outline-secondary" onClick={() => navigate("/offerings-region")}>
+          <button className="btn btn-outline-secondary" onClick={() => navigate("/gifts-region")}>
             <i className="bi bi-arrow-left me-2"></i>Back to Region Selection
           </button>
         </div>
@@ -51,7 +54,7 @@ export default function OfferingsRegistrationCheck() {
             alt="SPICON Logo"
             style={{ width: "120px", marginBottom: "20px" }}
           />
-          <h2 className="fw-bold mb-3">Offerings</h2>
+          <h2 className="fw-bold mb-3">Gifts</h2>
           <p className="text-muted mb-4">Region: <strong>{region}</strong></p>
         </div>
 
@@ -102,7 +105,7 @@ export default function OfferingsRegistrationCheck() {
           
           <button
             className="btn btn-outline-secondary"
-            onClick={() => navigate("/offerings-region")}
+            onClick={() => navigate("/gifts-region")}
           >
             <i className="bi bi-arrow-left me-2"></i>
             Back

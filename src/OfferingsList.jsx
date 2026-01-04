@@ -11,30 +11,30 @@ export default function OfferingsList() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Filter to identify offerings
-  const isOffering = (item) => {
-    // Primary: Check if type field is "offering"
-    if (item.type === "offering") {
+  // Filter to identify gifts
+  const isGift = (item) => {
+    // Primary: Check if type field is "gift"
+    if (item.type === "gift") {
       return true;
     }
     
-    // Fallback 1: Check if fullName or name indicates non-registered offering
+    // Fallback 1: Check if fullName or name indicates non-registered gift
     const name = item.fullName || item.name || "";
-    if (name === "Offering - Non-Registered") {
+    if (name === "Gift - Non-Registered") {
       return true;
     }
     
-    // Fallback 2: Check if purpose field exists (offerings have this optional field)
+    // Fallback 2: Check if purpose field exists (gifts have this optional field)
     if (item.purpose) {
       return true;
     }
     
     // Fallback 3: Check if it has transactionId and amountPaid but lacks key registration-specific fields
-    // Offerings have transactionId and amountPaid but typically don't have dtcAttended, iceuEgf, recommendedByRole, etc.
-    const hasOfferingFields = item.transactionId && item.amountPaid;
+    // Gifts have transactionId and amountPaid but typically don't have dtcAttended, iceuEgf, recommendedByRole, etc.
+    const hasGiftFields = item.transactionId && item.amountPaid;
     const lacksRegistrationFields = !item.dtcAttended && !item.iceuEgf && !item.recommendedByRole && !item.arrivalTime;
     
-    if (hasOfferingFields && lacksRegistrationFields) {
+    if (hasGiftFields && lacksRegistrationFields) {
       return true;
     }
     
@@ -63,45 +63,45 @@ export default function OfferingsList() {
       const result = await res.json();
       
       if (result.success) {
-        // Filter to show only offerings
-        const offerings = result.data.filter(isOffering);
-        console.log(`Found ${offerings.length} offerings out of ${result.data.length} total records`);
+        // Filter to show only gifts
+        const gifts = result.data.filter(isGift);
+        console.log(`Found ${gifts.length} gifts out of ${result.data.length} total records`);
         
-        // Enrich offerings with SPICON ID from registration data
-        // Since backend doesn't return uniqueId/spiconId for offerings, we need to match them
-        const enrichedOfferings = offerings.map((offering) => {
+        // Enrich gifts with SPICON ID from registration data
+        // Since backend doesn't return uniqueId/spiconId for gifts, we need to match them
+        const enrichedGifts = gifts.map((gift) => {
           // Try to find matching registration by email or name
-          // Exclude offerings from the search (they don't have uniqueId)
+          // Exclude gifts from the search (they don't have uniqueId)
           const matchingReg = result.data.find((reg) => {
-            // Skip if this is also an offering
-            if (isOffering(reg)) return false;
+            // Skip if this is also a gift
+            if (isGift(reg)) return false;
             
             // Match by email (most reliable)
-            if (offering.email && reg.email && offering.email.toLowerCase() === reg.email.toLowerCase()) {
+            if (gift.email && reg.email && gift.email.toLowerCase() === reg.email.toLowerCase()) {
               return true;
             }
             // Match by fullName and mobile (backup)
-            if (offering.fullName && reg.fullName && offering.mobile && reg.mobile) {
-              return offering.fullName.trim().toLowerCase() === reg.fullName.trim().toLowerCase() &&
-                     offering.mobile === reg.mobile;
+            if (gift.fullName && reg.fullName && gift.mobile && reg.mobile) {
+              return gift.fullName.trim().toLowerCase() === reg.fullName.trim().toLowerCase() &&
+                     gift.mobile === reg.mobile;
             }
             return false;
           });
           
           // Add uniqueId from matching registration if found
           if (matchingReg && matchingReg.uniqueId) {
-            return { ...offering, uniqueId: matchingReg.uniqueId, spiconId: matchingReg.uniqueId };
+            return { ...gift, uniqueId: matchingReg.uniqueId, spiconId: matchingReg.uniqueId };
           }
-          return offering;
+          return gift;
         });
         
-        setRecords(enrichedOfferings);
+        setRecords(enrichedGifts);
       } else {
-        toast.error("Failed to load offerings");
+        toast.error("Failed to load gifts");
       }
     } catch (err) {
-      console.error("Error fetching offerings:", err);
-      toast.error("Failed to load offerings");
+      console.error("Error fetching gifts:", err);
+      toast.error("Failed to load gifts");
     } finally {
       setLoading(false);
     }
@@ -171,7 +171,7 @@ export default function OfferingsList() {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h4 className="fw-bold">
-          Offering List
+          Gift List
           {filterRegion !== "all" && <span className="text-primary ms-2">({filterRegion})</span>}
           {filterRegion === "all" && <span className="text-info ms-2">(All Regions)</span>}
         </h4>
@@ -233,7 +233,7 @@ export default function OfferingsList() {
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="mt-2 text-muted">Loading offerings...</p>
+          <p className="mt-2 text-muted">Loading gifts...</p>
         </div>
       )}
 
@@ -302,7 +302,7 @@ export default function OfferingsList() {
               ) : (
                 <tr>
                   <td colSpan="13" className="text-danger fw-bold py-4">
-                    {loading ? "Loading..." : `No Offerings Found ${filterRegion !== "all" ? `for ${filterRegion}` : ""}`}
+                    {loading ? "Loading..." : `No Gifts Found ${filterRegion !== "all" ? `for ${filterRegion}` : ""}`}
                   </td>
                 </tr>
               )}
@@ -314,7 +314,7 @@ export default function OfferingsList() {
       {/* Count Display */}
       {!loading && (
         <div className="mt-2 text-muted small">
-          Showing {filteredRecords.length} of {records.length} offering(s)
+          Showing {filteredRecords.length} of {records.length} gift(s)
           {filterRegion !== "all" && ` (Filtered: ${filterRegion})`}
           {filterRegion === "all" && " (All Regions)"}
         </div>

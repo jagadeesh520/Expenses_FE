@@ -80,13 +80,13 @@ function App() {
         <Route path="/payment-validation-region" element={<PaymentValidationRegionSelection />} />
         <Route path="/payment-validation" element={<PaymentValidationTransactionValidation />} />
 
-        {/* Offerings Module */}
-        <Route path="/offerings-region" element={<OfferingsRegionSelection />} />
-        <Route path="/offerings-registration-check" element={<OfferingsRegistrationCheck />} />
-        <Route path="/offerings-spicon-validation" element={<OfferingsSpiconValidation />} />
-        <Route path="/offerings-form" element={<OfferingsForm />} />
-        <Route path="/offerings-success" element={<OfferingsSuccess />} />
-        <Route path="/offerings-list" element={<OfferingsList />} />
+        {/* Gifts Module */}
+        <Route path="/gifts-region" element={<OfferingsRegionSelection />} />
+        <Route path="/gifts-registration-check" element={<OfferingsRegistrationCheck />} />
+        <Route path="/gifts-spicon-validation" element={<OfferingsSpiconValidation />} />
+        <Route path="/gifts-form" element={<OfferingsForm />} />
+        <Route path="/gifts-success" element={<OfferingsSuccess />} />
+        <Route path="/gifts-list" element={<OfferingsList />} />
 
         {/* Statistics Modules */}
         <Route path="/statistics" element={<Statistics />} />

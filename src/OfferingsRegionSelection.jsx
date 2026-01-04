@@ -6,7 +6,7 @@ export default function OfferingsRegionSelection() {
   const navigate = useNavigate();
 
   const handleRegionSelect = (region) => {
-    navigate("/offerings-registration-check", { state: { region } });
+    navigate("/gifts-registration-check", { state: { region } });
   };
 
   return (
@@ -21,8 +21,8 @@ export default function OfferingsRegionSelection() {
             alt="SPICON Logo"
             style={{ width: "120px", marginBottom: "20px" }}
           />
-          <h2 className="fw-bold mb-3">Offerings</h2>
-          <p className="text-muted">Select a region to submit your offering</p>
+          <h2 className="fw-bold mb-3">Gifts</h2>
+          <p className="text-muted">Select a region to submit your gift</p>
         </div>
 
         <div className="d-grid gap-3">
