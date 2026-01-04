@@ -98,6 +98,28 @@ export default function PaymentAbstract() {
     return regRegion === selectedRegion;
   });
 
+  // Remove duplicates from registrations based on transactionId
+  // Keep the first occurrence of each unique transactionId
+  const seenTransactionIds = new Set();
+  const uniqueRegistrations = filteredRegistrations.filter((reg) => {
+    const txId = reg.transactionId?.trim();
+    // If no transactionId, keep the record (can't deduplicate)
+    if (!txId) {
+      return true;
+    }
+    // If transactionId already seen, skip this record (duplicate)
+    if (seenTransactionIds.has(txId)) {
+      return false;
+    }
+    // Mark this transactionId as seen and keep the record
+    seenTransactionIds.add(txId);
+    return true;
+  });
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentAbstract.jsx:deduplication',message:'Deduplication stats',data:{totalRegistrations:registrations.length,filteredRegistrations:filteredRegistrations.length,uniqueRegistrations:uniqueRegistrations.length,duplicatesRemoved:filteredRegistrations.length-uniqueRegistrations.length,selectedRegion:selectedRegion},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
+
   // Remove duplicate payments based on transactionId
   const uniquePayments = payments.reduce((acc, payment) => {
     const txId = payment.transactionId?.trim();
@@ -116,8 +138,8 @@ export default function PaymentAbstract() {
     return payRegion === selectedRegion;
   });
 
-  // All-Districts Abstract with category counts
-  const districtAbstract = filteredRegistrations.reduce((acc, reg) => {
+  // All-Districts Abstract with category counts (using unique registrations)
+  const districtAbstract = uniqueRegistrations.reduce((acc, reg) => {
     const district = reg.district || "Unknown";
     const category = getCategoryKey(reg.groupType);
     
@@ -201,7 +223,7 @@ export default function PaymentAbstract() {
     }
 
     // Find matching registration to get totalFamilyMembers
-    const matchingReg = filteredRegistrations.find(reg => {
+    const matchingReg = uniqueRegistrations.find(reg => {
       if (reg.transactionId && payment.transactionId) {
         return reg.transactionId.trim() === payment.transactionId.trim();
       }
@@ -241,7 +263,7 @@ export default function PaymentAbstract() {
     acc[category].collected += Number(payment.amountPaid) || 0;
     
     // Calculate expected based on registration data
-    const reg = filteredRegistrations.find(r => {
+    const reg = uniqueRegistrations.find(r => {
       if (r.transactionId && payment.transactionId) {
         return r.transactionId.trim() === payment.transactionId.trim();
       }
@@ -271,8 +293,8 @@ export default function PaymentAbstract() {
     return acc;
   }, {});
 
-  // Overall Payment Abstract
-  const totalExpected = filteredRegistrations.reduce((sum, reg) => {
+  // Overall Payment Abstract (using unique registrations)
+  const totalExpected = uniqueRegistrations.reduce((sum, reg) => {
     return sum + getTotalAmount(
       reg.region,
       reg.groupType,
@@ -281,15 +303,39 @@ export default function PaymentAbstract() {
     );
   }, 0);
 
-  const totalCollected = filteredPayments.reduce(
-    (sum, p) => sum + (Number(p.amountPaid) || 0),
+  // Calculate totalCollected from unique registrations' amountPaid (same as TreasurerSummary)
+  // This ensures consistency between Treasurer and Registrar dashboards
+  const totalCollected = uniqueRegistrations.reduce(
+    (sum, reg) => sum + (Number(reg.amountPaid) || 0),
     0
   );
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentAbstract.jsx:totalCollected',message:'Total collected calculation',data:{totalCollectedFromRegistrations:totalCollected,totalCollectedFromPayments:filteredPayments.reduce((sum,p)=>sum+(Number(p.amountPaid)||0),0),uniqueRegistrationsCount:uniqueRegistrations.length,filteredPaymentsCount:filteredPayments.length},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
+  // #endregion
 
-  const totalPending = totalExpected - totalCollected;
+  // Calculate totalPending the same way as TreasurerSummary (sum of individual balances)
+  // This ensures consistency: balance = Math.max(0, totalAmount - amountPaid) per record
+  const totalPending = uniqueRegistrations.reduce((sum, reg) => {
+    const totalAmount = getTotalAmount(
+      reg.region,
+      reg.groupType,
+      reg.maritalStatus,
+      reg.spouseAttending
+    );
+    const amountPaid = Number(reg.amountPaid) || 0;
+    const balance = Math.max(0, totalAmount - amountPaid);
+    return sum + balance;
+  }, 0);
+  
   const collectionPercentage = totalExpected > 0 
     ? ((totalCollected / totalExpected) * 100).toFixed(2) 
     : 0;
+  
+  // #region agent log
+  const totalPendingBySubtraction = totalExpected - totalCollected;
+  fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentAbstract.jsx:totals',message:'PaymentAbstract totals',data:{totalExpected:totalExpected,totalCollected:totalCollected,totalPending:totalPending,totalPendingBySubtraction:totalPendingBySubtraction,difference:totalPending-totalPendingBySubtraction,uniqueRegistrationsCount:uniqueRegistrations.length,selectedRegion:selectedRegion},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
 
   if (loading) {
     return (
@@ -448,7 +494,7 @@ export default function PaymentAbstract() {
                   <tfoot className="table-dark">
                     <tr>
                       <td className="fw-bold">TOTAL</td>
-                      <td className="fw-bold">{filteredRegistrations.length}</td>
+                      <td className="fw-bold">{uniqueRegistrations.length}</td>
                       <td className="fw-bold">-</td>
                       <td className="fw-bold">-</td>
                       <td className="fw-bold">-</td>

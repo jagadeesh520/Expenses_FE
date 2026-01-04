@@ -105,16 +105,16 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Coordinator/LAC Convener - View My Requests */}
+              {/* Treasurer */}
               <div className="col-6">
                 <div
                   className="login-box"
-                  style={{ background: "#d1ecf1", borderColor: "#0dcaf0" }}
-                  onClick={() => navigate("/my-payment-requests")}
+                  style={{ background: "#fff3e0", borderColor: "#FF3B30" }}
+                  onClick={() => navigate("/treasurer/region-selection")}
                 >
-                  <i className="bi bi-list-check icon" style={{ color: "#0dcaf0" }}></i>
-                  <h5 className="fw-bold mt-2">My Payment Requests</h5>
-                  <span>View Your Requests</span>
+                  <i className="bi bi-cash-coin icon" style={{ color: "#FF3B30" }}></i>
+                  <h5 className="fw-bold mt-2">Treasurer</h5>
+                  <span>Manage Payments & Disbursements</span>
                 </div>
               </div>
 
@@ -128,6 +128,19 @@ export default function Home() {
                   <i className="bi bi-shield-check icon" style={{ color: "#dc3545" }}></i>
                   <h5 className="fw-bold mt-2">Payment Validation</h5>
                   <span>Validate PhonePe Transactions</span>
+                </div>
+              </div>
+
+              {/* Offerings */}
+              <div className="col-6">
+                <div
+                  className="login-box"
+                  style={{ background: "#f3e8ff", borderColor: "#9333ea" }}
+                  onClick={() => navigate("/offerings-region")}
+                >
+                  <i className="bi bi-gift-fill icon" style={{ color: "#9333ea" }}></i>
+                  <h5 className="fw-bold mt-2">Offerings</h5>
+                  <span>Submit Your Offerings</span>
                 </div>
               </div>
             </div>

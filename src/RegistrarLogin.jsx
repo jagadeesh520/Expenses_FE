@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_ENDPOINTS } from "./constants";
+import { API_ENDPOINTS, API_BASE_URL } from "./constants";
+// #region agent log
+fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:import-check',message:'Constants imported',data:{hasApiEndpoints:!!API_ENDPOINTS,hasLoginEndpoint:!!API_ENDPOINTS.LOGIN,loginUrl:API_ENDPOINTS.LOGIN,apiBaseUrl:API_BASE_URL},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+// #endregion
 
 export default function RegistrarLogin() {
   // #region agent log
   useEffect(() => {
-    fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:component-mount',message:'Component mounted',data:{hasRegistrarToken:!!localStorage.getItem('registrarToken'),hasRegistrarData:!!localStorage.getItem('registrarData')},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'D'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:component-mount',message:'Component mounted',data:{hasRegistrarToken:!!localStorage.getItem('registrarToken'),hasRegistrarData:!!localStorage.getItem('registrarData'),apiBaseUrl:API_BASE_URL,loginUrl:API_ENDPOINTS.LOGIN},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
   }, []);
   // #endregion
   const [username, setUsername] = useState("");
@@ -26,15 +29,50 @@ export default function RegistrarLogin() {
     setError("");
 
     try {
+      // #region agent log
+      const loginUrl = API_ENDPOINTS.LOGIN;
+      const requestBody = JSON.stringify({ username, password });
+      const currentOrigin = window.location.origin;
+      const isHttps = loginUrl.startsWith('https://');
+      const isHttp = loginUrl.startsWith('http://');
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:fetch-before',message:'About to make fetch request',data:{loginUrl,hasUsername:!!username,hasPassword:!!password,requestMethod:'POST',origin:currentOrigin,isHttps,isHttp,protocolMismatch:currentOrigin.startsWith('http://')&&isHttps},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      
+      // Test if server is reachable first with a simple OPTIONS request
+      // #region agent log
+      try {
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:preflight-before',message:'About to test OPTIONS request',data:{loginUrl,method:'OPTIONS'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+        const preflightTest = await fetch(loginUrl, { method: 'OPTIONS', mode: 'cors' });
+        const preflightStatus = preflightTest.status;
+        const preflightCorsOrigin = preflightTest.headers.get('Access-Control-Allow-Origin');
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:preflight-test',message:'CORS preflight test result',data:{preflightStatus,preflightCorsOrigin,hasCorsHeader:!!preflightCorsOrigin,allowsOrigin:preflightCorsOrigin===currentOrigin||preflightCorsOrigin==='*'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+      } catch (preflightErr) {
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:preflight-error',message:'CORS preflight test failed',data:{preflightError:preflightErr.message,preflightErrorName:preflightErr.name,isConnectionRefused:preflightErr.message.includes('ERR_CONNECTION_REFUSED')||preflightErr.message.includes('Failed to fetch')},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+      }
+      // #endregion
+      
       // Use HTTP + correct port if the backend is running on 5000 without TLS.
       // Switch to https/443 only if you've configured SSL there.
-      const res = await fetch(API_ENDPOINTS.LOGIN, {
+      const res = await fetch(loginUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: requestBody,
+        mode: 'cors',
+        credentials: 'omit',
       });
+      // #region agent log
+      const responseStatus = res.status;
+      const responseStatusText = res.statusText;
+      const corsOrigin = res.headers.get('Access-Control-Allow-Origin');
+      const corsMethods = res.headers.get('Access-Control-Allow-Methods');
+      const corsHeaders = res.headers.get('Access-Control-Allow-Headers');
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:fetch-response',message:'Fetch response received',data:{status:responseStatus,statusText:responseStatusText,ok:res.ok,corsOrigin,corsMethods,corsHeaders,hasCorsHeaders:!!corsOrigin},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
 
       const data = await res.json();
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:response-json',message:'Response JSON parsed',data:{hasData:!!data,hasToken:!!data.token,hasUser:!!data.user,userRole:data.user?.role},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
 
       if (!res.ok) {
         setError(data.message || "Invalid login");
@@ -52,7 +90,30 @@ export default function RegistrarLogin() {
       alert("Login Successful 🎉");
       navigate("/registrar-dashboard");
     } catch (err) {
-      setError("Server error");
+      // #region agent log
+      const errorMessage = err.message || String(err);
+      const errorName = err.name;
+      const isCorsError = errorMessage.includes('CORS') || errorMessage.includes('cors') || errorMessage.includes('Access-Control');
+      const isNetworkError = errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('ERR_');
+      const currentOrigin = window.location.origin;
+      const isLocalhost = currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1');
+      const isHttp = currentOrigin.startsWith('http://');
+      const apiIsHttps = API_ENDPOINTS.LOGIN.startsWith('https://');
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrarLogin.jsx:catch-error',message:'Fetch error caught',data:{errorMessage,errorName,isCorsError,isNetworkError,errorType:typeof err,currentOrigin,isLocalhost,isHttp,apiIsHttps,protocolMismatch:isHttp&&apiIsHttps,stack:err.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      
+      // Provide more helpful error messages
+      if (isNetworkError) {
+        if (isHttp && apiIsHttps) {
+          setError("Connection error: Mixed content blocked. Please access the app via HTTPS or use HTTP for the API in development.");
+        } else {
+          setError("Connection error: Unable to reach the server. Please check: 1) Backend server is running, 2) CORS is configured to allow this origin, 3) Network connectivity.");
+        }
+      } else if (isCorsError) {
+        setError("CORS error: Backend needs to allow requests from this origin. Contact administrator.");
+      } else {
+        setError("Server error: " + errorMessage);
+      }
     }
   };
 

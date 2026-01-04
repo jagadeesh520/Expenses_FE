@@ -56,7 +56,7 @@ export default function SPICONRegistration() {
   
   // --- Define the Region for API Submission ---
   const REGION_NAME = "West Rayalaseema";
-  
+
   // --- Registration Status ---
   const REGISTRATIONS_CLOSED = true; // Set to true to close registrations
 

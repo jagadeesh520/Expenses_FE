@@ -21,6 +21,17 @@ import RegistrarDashboard from "./RegistrarDashboard";
 import Statistics from "./Statistics";
 import DistrictPlacePeopleDetails from "./DistrictPlacePeopleDetails";
 import PaymentAbstract from "./PaymentAbstract";
+import OfferingsRegionSelection from "./OfferingsRegionSelection";
+import OfferingsRegistrationCheck from "./OfferingsRegistrationCheck";
+import OfferingsSpiconValidation from "./OfferingsSpiconValidation";
+import OfferingsForm from "./OfferingsForm";
+import OfferingsSuccess from "./OfferingsSuccess";
+import OfferingsList from "./OfferingsList";
+import TreasurerDashboard from "./TreasurerDashboard";
+import TreasurerApprovedRequests from "./TreasurerApprovedRequests";
+import TreasurerSummary from "./TreasurerSummary";
+import TreasurerRegionSelection from "./TreasurerRegionSelection";
+import WorkerDisbursements from "./WorkerDisbursements";
 
 function App() {
   return (
@@ -48,6 +59,14 @@ function App() {
         <Route path="/create-payment-request" element={<PaymentRequestForm />} />
         <Route path="/my-payment-requests" element={<MyPaymentRequests />} />
 
+        {/* Treasurer Pages */}
+        <Route path="/treasurer" element={<TreasurerDashboard />} />
+        <Route path="/treasurer/region-selection" element={<TreasurerRegionSelection />} />
+        <Route path="/treasurer/dashboard" element={<TreasurerDashboard />} />
+        <Route path="/treasurer/approved-requests" element={<TreasurerApprovedRequests />} />
+        <Route path="/treasurer/summary" element={<TreasurerSummary />} />
+        <Route path="/treasurer/worker-disbursements" element={<WorkerDisbursements />} />
+
         {/* Cashier Pages */}
         <Route path="/cashier-payment-requests" element={<CashierPaymentRequests />} />
 
@@ -60,6 +79,14 @@ function App() {
         {/* Payment Validation */}
         <Route path="/payment-validation-region" element={<PaymentValidationRegionSelection />} />
         <Route path="/payment-validation" element={<PaymentValidationTransactionValidation />} />
+
+        {/* Offerings Module */}
+        <Route path="/offerings-region" element={<OfferingsRegionSelection />} />
+        <Route path="/offerings-registration-check" element={<OfferingsRegistrationCheck />} />
+        <Route path="/offerings-spicon-validation" element={<OfferingsSpiconValidation />} />
+        <Route path="/offerings-form" element={<OfferingsForm />} />
+        <Route path="/offerings-success" element={<OfferingsSuccess />} />
+        <Route path="/offerings-list" element={<OfferingsList />} />
 
         {/* Statistics Modules */}
         <Route path="/statistics" element={<Statistics />} />
