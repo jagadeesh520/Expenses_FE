@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
   // Registrations
   REGISTRATIONS: `${API_BASE_URL}/api/cashier/registrations`,
   REGISTRATION_BY_ID: (id) => `${API_BASE_URL}/api/cashier/registrations/${id}`,
+  REGISTRATION_UPDATE: (id) => `${API_BASE_URL}/api/cashier/${id}`, // PUT endpoint for updating registrations
   REGISTRATION_SCREENSHOT: (id) => `${API_BASE_URL}/api/cashier/registrations/${id}/screenshot`,
   REGISTRATION_APPROVE: (id) => `${API_BASE_URL}/api/cashier/registrations/${id}/approve`,
   REGISTRATION_REJECT: (id) => `${API_BASE_URL}/api/cashier/registrations/${id}/reject`,

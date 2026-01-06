@@ -205,48 +205,74 @@ export default function PendingPayment() {
     setLoading(true);
 
     try {
-      const fd = new FormData();
-      
       // Calculate total amount paid (existing + new payment)
       const newPaymentAmount = parseFloat(formData.paidAmount);
       const existingAmountPaid = parseFloat(candidateData.amountPaid || 0);
       const totalAmountPaid = existingAmountPaid + newPaymentAmount;
-      
-      // Add payment update fields
-      fd.append("type", "payment_update");
-      fd.append("region", selectedRegion);
-      fd.append("spiconId", spiconId);
-      fd.append("uniqueId", candidateData.uniqueId || "");
-      fd.append("transactionId", formData.transactionId);
-      fd.append("amountPaid", totalAmountPaid.toString()); // Send total amount paid
-      fd.append("dateOfPayment", formData.paymentDate);
-      fd.append("fullName", candidateData.name || candidateData.fullName || "");
-      fd.append("email", candidateData.email || "");
-      fd.append("mobile", candidateData.mobile || "");
-      fd.append("district", candidateData.district || "");
-      fd.append("groupType", candidateData.groupType || "");
-      
-      if (formData.remarks) {
-        fd.append("remarks", formData.remarks);
+
+      // Check if we have registration ID - if not, cannot update
+      if (!candidateData._id) {
+        throw new Error("Registration ID not found. Cannot update payment.");
       }
 
-      // Add payment screenshot
-      if (screenshot) {
-        fd.append("paymentScreenshot", screenshot);
-      }
+      // Step 1: Update existing registration using PUT endpoint
+      // This updates the existing record instead of creating a new one
+      // Backend PUT endpoint now supports: amountPaid, transactionId, dateOfPayment, registrationStatus
+      // It will append new transaction to transactions array and recalculate amountPaid
+      const updatePayload = {
+        // Fields explicitly supported by backend PUT endpoint
+        name: candidateData.name || candidateData.fullName || "",
+        // Payment update fields (now supported by backend)
+        amountPaid: totalAmountPaid,
+        transactionId: formData.transactionId,
+        dateOfPayment: formData.paymentDate,
+        // Preserve registration status to prevent re-approval
+        registrationStatus: candidateData.registrationStatus || "approved",
+      };
 
-      const res = await fetch(API_ENDPOINTS.REGISTER_CUSTOMER, {
-        method: "POST",
-        body: fd,
+      // Step 2: Update existing registration using PUT endpoint
+      const res = await fetch(API_ENDPOINTS.REGISTRATION_UPDATE(candidateData._id), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatePayload),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Payment submission failed");
+        throw new Error(data.error || "Payment update failed");
       }
 
-      toast.success("Payment submitted successfully!");
+      // Step 3: If payment update succeeds, upload screenshot separately
+      if (screenshot && candidateData._id) {
+        try {
+          const screenshotForm = new FormData();
+          screenshotForm.append("paymentScreenshot", screenshot);
+          
+          const screenshotRes = await fetch(API_ENDPOINTS.REGISTRATION_SCREENSHOT(candidateData._id), {
+            method: "POST",
+            body: screenshotForm,
+          });
+
+          const screenshotData = await screenshotRes.json();
+          
+          if (!screenshotRes.ok) {
+            // Payment update succeeded but screenshot upload failed - show warning
+            toast.warning("Payment updated successfully, but screenshot upload failed. Please contact support.");
+            console.error("Screenshot upload error:", screenshotData);
+          } else {
+            toast.success("Payment and screenshot submitted successfully!");
+          }
+        } catch (screenshotErr) {
+          // Payment update succeeded but screenshot upload failed - show warning
+          toast.warning("Payment updated successfully, but screenshot upload failed. Please contact support.");
+          console.error("Screenshot upload error:", screenshotErr);
+        }
+      } else {
+        toast.success("Payment updated successfully!");
+      }
       
       // Navigate to success or refresh candidate data
       setTimeout(() => {
