@@ -27,20 +27,55 @@ export default function OfferingsSpiconValidation() {
     setValidated(false);
 
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsSpiconValidation.jsx:handleValidate-entry',message:'Starting SPICON ID validation',data:{spiconId:spiconId.trim(),selectedRegion:region},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+
       const res = await fetch(API_ENDPOINTS.REGISTRATIONS);
       const result = await res.json();
 
       if (result.success && result.data) {
-        // Search for SPICON ID (case-insensitive)
-        const found = result.data.find(
+        // #region agent log
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsSpiconValidation.jsx:handleValidate-fetched',message:'Fetched registrations',data:{totalRegistrations:result.data.length},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+
+        // First, find all matches for this SPICON ID (across all regions)
+        const allMatches = result.data.filter(
           (reg) => reg.uniqueId && reg.uniqueId.toLowerCase() === spiconId.trim().toLowerCase()
         );
 
+        // #region agent log
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsSpiconValidation.jsx:handleValidate-matches',message:'Found SPICON ID matches',data:{matchCount:allMatches.length,matches:allMatches.map(m=>({uniqueId:m.uniqueId,region:m.region,name:m.name||m.fullName}))},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+
+        // Now find the match in the selected region
+        const found = allMatches.find(
+          (reg) => reg.region === region
+        );
+
         if (found) {
+          // #region agent log
+          fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsSpiconValidation.jsx:handleValidate-success',message:'SPICON ID validated in correct region',data:{uniqueId:found.uniqueId,foundRegion:found.region,selectedRegion:region,name:found.name||found.fullName},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'D'})}).catch(()=>{});
+          // #endregion
+
           setCandidateData(found);
           setValidated(true);
           setError("");
+        } else if (allMatches.length > 0) {
+          // SPICON ID exists but in a different region
+          const otherRegion = allMatches[0].region;
+          // #region agent log
+          fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsSpiconValidation.jsx:handleValidate-wrongRegion',message:'SPICON ID found in different region',data:{uniqueId:spiconId.trim(),selectedRegion:region,foundRegion:otherRegion},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'E'})}).catch(()=>{});
+          // #endregion
+
+          setError(`This SPICON ID belongs to ${otherRegion}. Please select the correct region or verify your SPICON ID.`);
+          setValidated(false);
+          setCandidateData(null);
         } else {
+          // #region agent log
+          fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OfferingsSpiconValidation.jsx:handleValidate-notFound',message:'SPICON ID not found in any region',data:{uniqueId:spiconId.trim()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'F'})}).catch(()=>{});
+          // #endregion
+
           setError("SPICON ID not found. Please verify and try again.");
           setValidated(false);
           setCandidateData(null);

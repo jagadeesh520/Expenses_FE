@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_ENDPOINTS } from "./constants";
+import { exportTableToExcel, exportTableToPDF } from "./utils/exportUtils";
 
 export default function RegistrationList() {
   const [records, setRecords] = useState([]);
@@ -131,7 +132,37 @@ export default function RegistrationList() {
           {filterRegion === "all" && <span className="text-info ms-2">(All Regions)</span>}
         </h4>
 
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 flex-wrap">
+          <button
+            className="btn btn-success fw-bold btn-sm px-3"
+            onClick={() => {
+              const tableElement = document.getElementById("registrations-table");
+              if (tableElement) {
+                exportTableToExcel(tableElement, "Registrations_Approval_List");
+                toast.success("Excel file downloaded successfully!");
+              } else {
+                toast.error("Table not found");
+              }
+            }}
+            title="Download as Excel"
+          >
+            <i className="bi bi-file-earmark-excel me-1"></i>Excel
+          </button>
+          <button
+            className="btn btn-danger fw-bold btn-sm px-3"
+            onClick={() => {
+              const tableElement = document.getElementById("registrations-table");
+              if (tableElement) {
+                exportTableToPDF(tableElement, "Registrations_Approval_List", "Registrations Approval List");
+                toast.success("PDF file downloaded successfully!");
+              } else {
+                toast.error("Table not found");
+              }
+            }}
+            title="Download as PDF"
+          >
+            <i className="bi bi-file-earmark-pdf me-1"></i>PDF
+          </button>
           <button
             className="btn btn-primary fw-bold btn-sm px-3"
             onClick={() => navigate("/payment-requests")}
@@ -199,7 +230,7 @@ export default function RegistrationList() {
         border: "1px solid #dee2e6",
         borderRadius: "0.375rem"
       }}>
-        <table className="table table-bordered table-striped align-middle text-center table-sm mb-0" style={{ minWidth: "2000px" }}>
+        <table id="registrations-table" className="table table-bordered table-striped align-middle text-center table-sm mb-0" style={{ minWidth: "2000px" }}>
           <thead className="table-dark" style={{ position: "sticky", top: 0, zIndex: 10 }}>
             <tr>
               <th style={{ minWidth: "50px" }}>S.No</th>
