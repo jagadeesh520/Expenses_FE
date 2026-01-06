@@ -51,7 +51,7 @@ export default function EastRegistration() {
   const REGION_NAME = "East Rayalaseema";
 
   // --- Registration Status ---
-  const REGISTRATIONS_CLOSED = true; // Set to true to close registrations
+  const REGISTRATIONS_CLOSED = false; // Set to true to close registrations
 
   const handle = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -203,7 +203,7 @@ export default function EastRegistration() {
         <p className="mt-3">
           <strong>Last date for registration:</strong>
           <br />
-          Dec 22, 2025 – 11:59 PM
+          Extended for short period, 2025 – 11:59 PM
         </p>
 
         <p className="text-danger fw-bold">

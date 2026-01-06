@@ -143,6 +143,19 @@ export default function Home() {
                   <span>Submit Your Gifts</span>
                 </div>
               </div>
+
+              {/* Pay Pending Amount */}
+              <div className="col-6">
+                <div
+                  className="login-box"
+                  style={{ background: "#e8f5e9", borderColor: "#4caf50" }}
+                  onClick={() => navigate("/pending-payment")}
+                >
+                  <i className="bi bi-credit-card icon" style={{ color: "#4caf50" }}></i>
+                  <h5 className="fw-bold mt-2">Pay Pending Amount</h5>
+                  <span>Clear Your Dues</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

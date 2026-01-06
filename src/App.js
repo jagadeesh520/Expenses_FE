@@ -32,6 +32,8 @@ import TreasurerApprovedRequests from "./TreasurerApprovedRequests";
 import TreasurerSummary from "./TreasurerSummary";
 import TreasurerRegionSelection from "./TreasurerRegionSelection";
 import WorkerDisbursements from "./WorkerDisbursements";
+import EventDayVerification from "./EventDayVerification";
+import PendingPayment from "./PendingPayment";
 
 function App() {
   return (
@@ -92,6 +94,12 @@ function App() {
         <Route path="/statistics" element={<Statistics />} />
         <Route path="/statistics/district-place-people" element={<DistrictPlacePeopleDetails />} />
         <Route path="/statistics/payment-abstract" element={<PaymentAbstract />} />
+
+        {/* Event Day Verification */}
+        <Route path="/event-day-verification" element={<EventDayVerification />} />
+
+        {/* Pending Payment */}
+        <Route path="/pending-payment" element={<PendingPayment />} />
 
       </Routes>
     </Router>
