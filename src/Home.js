@@ -68,6 +68,32 @@ export default function Home() {
             <p className="text-secondary mb-4">Select login type</p>
 
             <div className="row g-3">
+              {/* Gifts - First Row */}
+              <div className="col-6">
+                <div
+                  className="login-box"
+                  style={{ background: "#f3e8ff", borderColor: "#9333ea" }}
+                  onClick={() => navigate("/gifts-region")}
+                >
+                  <i className="bi bi-gift-fill icon" style={{ color: "#9333ea" }}></i>
+                  <h5 className="fw-bold mt-2">Gifts</h5>
+                  <span>Submit Your Gifts</span>
+                </div>
+              </div>
+
+              {/* Pay Pending Amount - First Row */}
+              <div className="col-6">
+                <div
+                  className="login-box"
+                  style={{ background: "#e8f5e9", borderColor: "#4caf50" }}
+                  onClick={() => navigate("/pending-payment")}
+                >
+                  <i className="bi bi-credit-card icon" style={{ color: "#4caf50" }}></i>
+                  <h5 className="fw-bold mt-2">Pay Pending Amount</h5>
+                  <span>Clear Your Dues</span>
+                </div>
+              </div>
+
               {/* Admin Login Tile */}
               <div className="col-6">
                 <div
@@ -128,32 +154,6 @@ export default function Home() {
                   <i className="bi bi-shield-check icon" style={{ color: "#dc3545" }}></i>
                   <h5 className="fw-bold mt-2">Payment Validation</h5>
                   <span>Validate PhonePe Transactions</span>
-                </div>
-              </div>
-
-              {/* Gifts */}
-              <div className="col-6">
-                <div
-                  className="login-box"
-                  style={{ background: "#f3e8ff", borderColor: "#9333ea" }}
-                  onClick={() => navigate("/gifts-region")}
-                >
-                  <i className="bi bi-gift-fill icon" style={{ color: "#9333ea" }}></i>
-                  <h5 className="fw-bold mt-2">Gifts</h5>
-                  <span>Submit Your Gifts</span>
-                </div>
-              </div>
-
-              {/* Pay Pending Amount */}
-              <div className="col-6">
-                <div
-                  className="login-box"
-                  style={{ background: "#e8f5e9", borderColor: "#4caf50" }}
-                  onClick={() => navigate("/pending-payment")}
-                >
-                  <i className="bi bi-credit-card icon" style={{ color: "#4caf50" }}></i>
-                  <h5 className="fw-bold mt-2">Pay Pending Amount</h5>
-                  <span>Clear Your Dues</span>
                 </div>
               </div>
             </div>
