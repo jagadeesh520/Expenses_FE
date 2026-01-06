@@ -94,10 +94,14 @@ export default function TreasurerSummary() {
           });
         }
 
+        // Separate gifts from regular registrations
+        const gifts = registrations.filter((reg) => reg.type === "gift");
+        const regularRegistrations = registrations.filter((reg) => reg.type !== "gift");
+
         // Remove duplicates based on transactionId BEFORE calculating payment details
         // Keep the first occurrence of each unique transactionId
         const seenTransactionIds = new Set();
-        const uniqueRegistrations = registrations.filter((reg) => {
+        const uniqueRegistrations = regularRegistrations.filter((reg) => {
           const txId = reg.transactionId?.trim();
           // If no transactionId, keep the record (can't deduplicate)
           if (!txId) {
@@ -113,11 +117,11 @@ export default function TreasurerSummary() {
         });
         
         // #region agent log
-        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TreasurerSummary.jsx:loadData',message:'Deduplication stats',data:{totalRegistrations:registrations.length,uniqueRegistrations:uniqueRegistrations.length,duplicatesRemoved:registrations.length-uniqueRegistrations.length,filterRegion:filterRegion},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TreasurerSummary.jsx:loadData',message:'Deduplication stats',data:{totalRegistrations:registrations.length,giftsCount:gifts.length,regularRegistrationsCount:regularRegistrations.length,uniqueRegistrations:uniqueRegistrations.length,duplicatesRemoved:regularRegistrations.length-uniqueRegistrations.length,filterRegion:filterRegion},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
         // #endregion
 
-        // Calculate payment details for each unique registration
-        const details = uniqueRegistrations.map((reg) => {
+        // Calculate payment details for regular registrations
+        const regularDetails = uniqueRegistrations.map((reg) => {
           const groupType = reg.groupType || "";
           const region = reg.region || "";
           const totalAmount = getTotalAmount(
@@ -144,6 +148,33 @@ export default function TreasurerSummary() {
             balance,
           };
         });
+
+        // Calculate payment details for gifts
+        // For gifts: use amountPaid as both totalAmount and amountPaid (gifts don't have a calculated total)
+        const giftDetails = gifts.map((gift) => {
+          const amountPaid = gift.amountPaid || 0;
+          // For gifts, the amount paid is both the total amount and the amount paid
+          const totalAmount = amountPaid;
+          const balance = 0; // Gifts are fully paid (no balance)
+
+          // Get payment date - prefer paymentDate, fallback to updatedAt, then createdAt
+          const paymentDate = gift.paymentDate || gift.updatedAt || gift.createdAt || null;
+          
+          return {
+            _id: gift._id,
+            name: gift.name || gift.fullName || "N/A",
+            uniqueId: gift.uniqueId || "Gift",
+            groupType: "Gift",
+            transactionId: gift.transactionId || null,
+            paymentDate: paymentDate,
+            totalAmount,
+            amountPaid,
+            balance,
+          };
+        });
+
+        // Combine regular registrations and gifts
+        const details = [...regularDetails, ...giftDetails];
         
         // #region agent log
         const balanceSum = details.reduce((sum, item) => sum + item.balance, 0);
