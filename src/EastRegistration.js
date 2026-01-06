@@ -47,6 +47,12 @@ export default function EastRegistration() {
   const [messageType, setMessageType] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // --- Define the Region for API Submission ---
+  const REGION_NAME = "East Rayalaseema";
+
+  // --- Registration Status ---
+  const REGISTRATIONS_CLOSED = true; // Set to true to close registrations
+
   const handle = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -66,8 +72,8 @@ export default function EastRegistration() {
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
     if (screenshot) fd.append("paymentScreenshot", screenshot);
 
-    // IMPORTANT: Identifier for East Region
-    fd.append("region", "East Rayalaseema");
+    // IMPORTANT: Hardcode the region here for the backend
+    fd.append("region", REGION_NAME);
 
     setLoading(true);
 
@@ -86,7 +92,7 @@ export default function EastRegistration() {
       // Redirect to the success page, passing region, email, and success message via state
       navigate("/registration-success", {
         state: {
-          region: "East Rayalaseema",
+          region: REGION_NAME,
           email: form.email,
           fullName: form.fullName,
           message: data.message || "Registration successful. Confirmation email has been sent."
@@ -101,6 +107,34 @@ export default function EastRegistration() {
 
     // navigation unmounts component, so no setLoading(false) here on success
   };
+
+  // If registrations are closed, show only the closed message
+  if (REGISTRATIONS_CLOSED) {
+    return (
+      <div className="container py-5" style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="text-center" style={{ maxWidth: "600px", padding: "40px" }}>
+          <div className="mb-4">
+            <i className="bi bi-x-circle-fill" style={{ fontSize: "5rem", color: "#dc3545" }}></i>
+          </div>
+          <h1 className="fw-bold mb-3" style={{ color: "#dc3545" }}>Registrations Closed</h1>
+          <p className="lead mb-4">
+            Registrations for East Rayalaseema SPICON-2026 are now closed.
+          </p>
+          <p className="text-muted">
+            We are no longer accepting new registrations for this region.
+          </p>
+          <div className="mt-4">
+            <button 
+              className="btn btn-outline-primary"
+              onClick={() => navigate("/")}
+            >
+              <i className="bi bi-house me-2"></i>Go to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-4">
