@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { API_ENDPOINTS } from "./constants";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 // Pricing function based on region and group type (reused from TreasurerSummary)
 const getTotalAmount = (region, groupType, maritalStatus, spouseAttending) => {
@@ -68,6 +69,53 @@ const CATEGORIES = [
   "Volunteers"
 ];
 
+// Genders for splitting categories (except Family)
+// Using lowercase to match Statistics module normalization
+const GENDERS = ["male", "female"];
+
+/**
+ * Helper function to normalize gender (REUSED from DistrictPlacePeopleDetails)
+ * Returns "male", "female", or null
+ */
+const getGender = (gender) => {
+  if (!gender) return null;
+  const g = gender.toLowerCase().trim();
+  // Check for "female" first (more specific) before "male" to avoid false matches
+  // "female" contains "male", so we must check "female" first
+  if (g.includes("female") || g === "f") return "female";
+  if (g.includes("male") || g === "m") return "male";
+  return null;
+};
+
+/**
+ * Get display label for category card
+ * For Family: returns "Family"
+ * For others: returns "Category – Gender" (capitalized for display)
+ */
+const getCategoryLabel = (category, gender = null) => {
+  if (category === "Family") {
+    return "Family";
+  }
+  if (gender) {
+    // Capitalize first letter for display
+    const genderDisplay = gender.charAt(0).toUpperCase() + gender.slice(1);
+    return `${category} – ${genderDisplay}`;
+  }
+  return category;
+};
+
+/**
+ * Get category key for counting/filtering
+ * For Family: returns "Family"
+ * For others: returns "Category_Gender" format (lowercase)
+ */
+const getCategoryKey = (category, gender = null) => {
+  if (category === "Family") {
+    return "Family";
+  }
+  return gender ? `${category}_${gender}` : category;
+};
+
 export default function EventDayVerification() {
   const navigate = useNavigate();
   const [selectedRegion, setSelectedRegion] = useState("");
@@ -102,16 +150,53 @@ export default function EventDayVerification() {
   }, [selectedRegion, selectedDistrict]);
 
   // Update category counts when registrations change
+  // Now includes gender-based splits for non-Family categories
+  // Uses getGender() normalization to match Statistics module logic
   useEffect(() => {
     if (filteredRegistrations.length > 0) {
       const counts = {};
-      CATEGORIES.forEach(category => {
-        const categoryRegs = filteredRegistrations.filter(reg => {
-          const regCategory = reg.groupType || "";
-          return regCategory === category;
+      
+      // TEMPORARY DEBUG: Log sample registration data
+      if (filteredRegistrations.length > 0) {
+        const sampleReg = filteredRegistrations[0];
+        console.log("[DEBUG] Sample registration:", {
+          rawGender: sampleReg.gender,
+          normalizedGender: getGender(sampleReg.gender),
+          groupType: sampleReg.groupType,
+          name: sampleReg.name || sampleReg.fullName
         });
-        counts[category] = categoryRegs.length;
+      }
+      
+      CATEGORIES.forEach(category => {
+        if (category === "Family") {
+          // Family: no gender split
+          const categoryRegs = filteredRegistrations.filter(reg => {
+            const regCategory = reg.groupType || "";
+            return regCategory === category;
+          });
+          counts[category] = categoryRegs.length;
+        } else {
+          // Other categories: split by gender using normalized gender values
+          GENDERS.forEach(gender => {
+            const categoryKey = getCategoryKey(category, gender);
+            const categoryRegs = filteredRegistrations.filter(reg => {
+              const regCategory = reg.groupType || "";
+              const normalizedGender = getGender(reg.gender);
+              return regCategory === category && normalizedGender === gender;
+            });
+            counts[categoryKey] = categoryRegs.length;
+            
+            // TEMPORARY DEBUG: Log counts per category+gender
+            if (categoryRegs.length > 0) {
+              console.log(`[DEBUG] ${category} - ${gender}: ${categoryRegs.length} registrations`);
+            }
+          });
+        }
       });
+      
+      // TEMPORARY DEBUG: Log final counts
+      console.log("[DEBUG] Final category counts:", counts);
+      
       setCategoryCounts(counts);
     } else {
       setCategoryCounts({});
@@ -214,17 +299,131 @@ export default function EventDayVerification() {
     return name.replace(/[^a-zA-Z0-9]/g, "_");
   };
 
-  const generateCategoryPDF = (category, viewOnly = false) => {
+  /**
+   * Filter registrations by category and gender
+   * For Family: ignores gender
+   * For others: filters by both category and gender
+   * Uses getGender() normalization to match Statistics module logic
+   */
+  const filterRegistrationsByCategoryAndGender = (category, gender = null) => {
+    return filteredRegistrations.filter(reg => {
+      const regCategory = reg.groupType || "";
+      if (regCategory !== category) {
+        return false;
+      }
+      
+      // Family: no gender filter
+      if (category === "Family") {
+        return true;
+      }
+      
+      // Other categories: filter by normalized gender
+      if (gender) {
+        const normalizedGender = getGender(reg.gender);
+        return normalizedGender === gender;
+      }
+      
+      return true;
+    });
+  };
+
+  /**
+   * Generate Excel file for category/gender combination
+   */
+  const generateCategoryExcel = (category, gender = null) => {
     if (!selectedRegion || !selectedDistrict) {
       toast.error("Please select region and district first");
       return;
     }
 
-    // Filter registrations by category
-    const categoryRegistrations = filteredRegistrations.filter(reg => {
-      const regCategory = reg.groupType || "";
-      return regCategory === category;
+    // Filter registrations by category and gender
+    const categoryRegistrations = filterRegistrationsByCategoryAndGender(category, gender);
+
+    if (categoryRegistrations.length === 0) {
+      const label = getCategoryLabel(category, gender);
+      toast.info(`No registrations found for ${label} in ${selectedDistrict}`);
+      return;
+    }
+
+    // Prepare Excel data
+    const excelData = categoryRegistrations.map((reg, index) => {
+      const totalAmount = getTotalAmount(
+        reg.region,
+        reg.groupType,
+        reg.maritalStatus,
+        reg.spouseAttending
+      );
+      const amountPaid = reg.amountPaid || 0;
+      // Calculate balance: Math.max(0, totalAmount - amountPaid) - same logic as TreasurerSummary
+      const balance = Math.max(0, totalAmount - amountPaid);
+      const paymentDate = reg.paymentDate || reg.dateOfPayment || reg.updatedAt || reg.createdAt;
+
+      // TEMPORARY DEBUG: Log balance calculation for Excel
+      if (index < 3) {
+        console.log(`[DEBUG Excel] Balance calculation for ${reg.name || reg.fullName}:`, {
+          totalAmount,
+          amountPaid,
+          calculatedBalance: balance
+        });
+      }
+
+      return {
+        "S.No": index + 1,
+        "Name": reg.name || reg.fullName || "N/A",
+        "Gender": reg.gender || "N/A",
+        "SPICON ID": reg.uniqueId || "N/A",
+        "Place": reg.iceuEgf || "N/A",
+        "Payment Date": formatDate(paymentDate),
+        "Transaction ID": reg.transactionId || "N/A",
+        "Total Amount": totalAmount,
+        "Amount Paid": amountPaid,
+        "Balance": balance, // Calculated from totalAmount - amountPaid
+        "Sign": "" // Empty for manual signature
+      };
     });
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    const colWidths = [
+      { wch: 6 },   // S.No
+      { wch: 25 },  // Name
+      { wch: 10 },  // Gender
+      { wch: 20 },  // SPICON ID
+      { wch: 20 },  // Place
+      { wch: 15 },  // Payment Date
+      { wch: 20 },  // Transaction ID
+      { wch: 15 },  // Total Amount
+      { wch: 15 },  // Amount Paid
+      { wch: 12 },  // Balance
+      { wch: 12 }   // Sign
+    ];
+    ws['!cols'] = colWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Registrations');
+
+    // Generate filename
+    const sanitizedDistrict = sanitizeFileName(selectedDistrict);
+    const sanitizedCategory = sanitizeFileName(category);
+    const sanitizedGender = gender ? `_${sanitizeFileName(gender)}` : "";
+    const filename = `${sanitizedDistrict}_${sanitizedCategory}${sanitizedGender}.xlsx`;
+
+    // Write file
+    XLSX.writeFile(wb, filename);
+    toast.success(`Excel downloaded: ${filename}`);
+  };
+
+  const generateCategoryPDF = (category, gender = null, viewOnly = false) => {
+    if (!selectedRegion || !selectedDistrict) {
+      toast.error("Please select region and district first");
+      return;
+    }
+
+    // Filter registrations by category and gender
+    const categoryRegistrations = filterRegistrationsByCategoryAndGender(category, gender);
 
     if (categoryRegistrations.length === 0) {
       toast.info(`No registrations found for ${category} in ${selectedDistrict}`);
@@ -240,10 +439,23 @@ export default function EventDayVerification() {
         reg.spouseAttending
       );
       const amountPaid = reg.amountPaid || 0;
+      // Calculate balance: Math.max(0, totalAmount - amountPaid) - same logic as TreasurerSummary
+      const balance = Math.max(0, totalAmount - amountPaid);
       const paymentDate = reg.paymentDate || reg.dateOfPayment || reg.updatedAt || reg.createdAt;
 
       const totalAmountFormatted = formatCurrency(totalAmount);
       const amountPaidFormatted = formatCurrency(amountPaid);
+      const balanceFormatted = formatCurrency(balance);
+
+      // TEMPORARY DEBUG: Log balance calculation
+      if (index < 3) {
+        console.log(`[DEBUG] Balance calculation for ${reg.name || reg.fullName}:`, {
+          totalAmount,
+          amountPaid,
+          calculatedBalance: balance,
+          formattedBalance: balanceFormatted
+        });
+      }
 
       return [
         index + 1, // S.No
@@ -255,7 +467,8 @@ export default function EventDayVerification() {
         reg.transactionId || "N/A", // Transaction ID
         totalAmountFormatted, // Total Amount
         amountPaidFormatted, // Amount Paid
-        "", // Balance (empty for manual filling)
+        balanceFormatted, // Balance (calculated from totalAmount - amountPaid)
+        "", // Accommodation Amount (empty for manual filling)
         "" // Sign (empty for manual signature)
       ];
     });
@@ -277,21 +490,22 @@ export default function EventDayVerification() {
     // Define column widths (in mm) - optimized to fit all columns
     // Total must be <= usableWidth (200mm)
     // Priority: Ensure Total Amount and Amount Paid are fully visible
-    // Reduced some columns to ensure all 11 columns fit
+    // Reduced some columns to ensure all 12 columns fit
     const columnWidths = [
       6,   // S.No (very small) - reduced from 6
-      22,  // Name (flexible, will wrap) - reduced from 24
+      21,  // Name (flexible, will wrap) - reduced from 22
       12,  // Gender (small) - reduced from 12
-      25,  // SPICON ID (medium) - reduced from 24
-      16,  // Place (medium, will wrap) - reduced from 18
+      25,  // SPICON ID (medium) - reduced from 25
+      15,  // Place (medium, will wrap) - reduced from 16
       15,  // Payment Date (small-medium) - reduced from 15
-      19,  // Transaction ID (medium, will wrap) - reduced from 20
-      22,  // Total Amount
-      22,  // Amount Paid
-      20,  // Balance
-      24   // Sign
+      19,  // Transaction ID (medium, will wrap) - reduced from 19
+      17,  // Total Amount - reduced from 22
+      17,  // Amount Paid - reduced from 22
+      18,  // Balance - reduced from 20
+      22,  // Accommodation Amount
+      24   // Sign - reduced from 24
     ];
-    // Total: 184mm (fits comfortably within 200mm usable width)
+    // Total: 198mm (fits comfortably within 200mm usable width)
     const totalTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
 
     // Add main heading - SPICON 2026 (Region) (centered)
@@ -304,7 +518,8 @@ export default function EventDayVerification() {
     // Add district and category title (centered)
     doc.setFontSize(12);
     doc.setFont(undefined, "normal");
-    const title = `${selectedDistrict} - ${category}`;
+    const categoryLabel = getCategoryLabel(category, gender);
+    const title = `${selectedDistrict} - ${categoryLabel}`;
     const titleWidth = doc.getTextWidth(title);
     doc.text(title, (pageWidth - titleWidth) / 2, 20);
 
@@ -321,6 +536,7 @@ export default function EventDayVerification() {
         "Total Amount",
         "Amount Paid",
         "Balance",
+        "Accommodation(Room Number)",
         "Sign"
       ]],
       body: tableData,
@@ -336,14 +552,15 @@ export default function EventDayVerification() {
         7: { cellWidth: columnWidths[7], fontSize: 8, halign: "right", overflow: "linebreak", minCellHeight: 5 },
         8: { cellWidth: columnWidths[8], fontSize: 8, halign: "right", overflow: "linebreak", minCellHeight: 5 },
         9: { cellWidth: columnWidths[9], fontSize: 7, halign: "center" },
-        10: { cellWidth: columnWidths[10], fontSize: 7, halign: "center" }
+        10: { cellWidth: columnWidths[10], fontSize: 7, halign: "center" }, // Accommodation Amount
+        11: { cellWidth: columnWidths[11], fontSize: 7, halign: "center" } // Sign
       },
       styles: {
         fontSize: 7, // Base font size
         cellPadding: 1.5, // Reduced from 2
         overflow: "linebreak", // Default overflow
-        lineWidth: 0.1, // Thin grid lines
-        lineColor: [200, 200, 200],
+        lineWidth: 0.1, // Thicker grid lines for better visibility
+        lineColor: [0, 0, 0], // Black borders for clear visibility
         textColor: [0, 0, 0] // Ensure text is visible
       },
       headStyles: {
@@ -358,6 +575,8 @@ export default function EventDayVerification() {
         // Center all table headings
         if (data.section === "head") {
           data.cell.styles.halign = "center";
+          // Ensure header text is white for all columns
+          data.cell.styles.textColor = 255; // White text for headers
         }
         // Ensure Total Amount and Amount Paid columns are fully visible
         if (data.column.index === 7 || data.column.index === 8) {
@@ -365,14 +584,15 @@ export default function EventDayVerification() {
           if (data.section === "head") {
             data.cell.styles.halign = "center"; // Center header
             data.cell.styles.fontSize = 8;
+            data.cell.styles.textColor = 255; // White text for header
           } else {
             // Body cells - right align for numbers
             data.cell.styles.halign = "right";
             data.cell.styles.fontSize = 8;
+            data.cell.styles.textColor = [0, 0, 0]; // Black text for body
           }
           // Ensure text is not clipped
           data.cell.styles.overflow = "linebreak";
-          data.cell.styles.textColor = [0, 0, 0];
         }
       },
       bodyStyles: {
@@ -406,7 +626,8 @@ export default function EventDayVerification() {
     // Generate filename
     const sanitizedDistrict = sanitizeFileName(selectedDistrict);
     const sanitizedCategory = sanitizeFileName(category);
-    const filename = `${sanitizedDistrict}_${sanitizedCategory}.pdf`;
+    const sanitizedGender = gender ? `_${sanitizeFileName(gender)}` : "";
+    const filename = `${sanitizedDistrict}_${sanitizedCategory}${sanitizedGender}.pdf`;
 
     if (viewOnly) {
       // Open in new tab
@@ -524,37 +745,96 @@ export default function EventDayVerification() {
             </h5>
             <div className="row g-3">
               {CATEGORIES.map((category) => {
-                const count = categoryCounts[category] || 0;
-                return (
-                  <div key={category} className="col-12 col-md-6 col-lg-4">
-                    <div className="card border h-100">
-                      <div className="card-body">
-                        <h6 className="fw-bold mb-2">{category}</h6>
-                        <p className="text-muted small mb-3">
-                          {count} registration{count !== 1 ? "s" : ""}
-                        </p>
-                        <div className="d-flex gap-2">
-                          <button
-                            className="btn btn-info btn-sm flex-fill"
-                            onClick={() => generateCategoryPDF(category, true)}
-                            disabled={count === 0}
-                            title="View PDF in new tab"
-                          >
-                            <i className="bi bi-eye me-1"></i>View PDF
-                          </button>
-                          <button
-                            className="btn btn-success btn-sm flex-fill"
-                            onClick={() => generateCategoryPDF(category, false)}
-                            disabled={count === 0}
-                            title="Download PDF file"
-                          >
-                            <i className="bi bi-download me-1"></i>Download
-                          </button>
+                if (category === "Family") {
+                  // Family: single card, no gender split
+                  const count = categoryCounts[category] || 0;
+                  return (
+                    <div key={category} className="col-12 col-md-6 col-lg-4">
+                      <div className="card border h-100">
+                        <div className="card-body">
+                          <h6 className="fw-bold mb-2">{getCategoryLabel(category)}</h6>
+                          <p className="text-muted small mb-3">
+                            {count} registration{count !== 1 ? "s" : ""}
+                          </p>
+                          <div className="d-flex flex-column gap-2">
+                            <div className="d-flex gap-2">
+                              <button
+                                className="btn btn-info btn-sm flex-fill"
+                                onClick={() => generateCategoryPDF(category, null, true)}
+                                disabled={count === 0}
+                                title="View PDF in new tab"
+                              >
+                                <i className="bi bi-eye me-1"></i>View PDF
+                              </button>
+                              <button
+                                className="btn btn-success btn-sm flex-fill"
+                                onClick={() => generateCategoryPDF(category, null, false)}
+                                disabled={count === 0}
+                                title="Download PDF file"
+                              >
+                                <i className="bi bi-download me-1"></i>Download PDF
+                              </button>
+                            </div>
+                            <button
+                              className="btn btn-warning btn-sm w-100"
+                              onClick={() => generateCategoryExcel(category, null)}
+                              disabled={count === 0}
+                              title="Download Excel file"
+                            >
+                              <i className="bi bi-file-earmark-excel me-1"></i>Download Excel
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
+                  );
+                } else {
+                  // Other categories: split by gender (Male and Female)
+                  return GENDERS.map((gender) => {
+                    const categoryKey = getCategoryKey(category, gender);
+                    const count = categoryCounts[categoryKey] || 0;
+                    return (
+                      <div key={categoryKey} className="col-12 col-md-6 col-lg-4">
+                        <div className="card border h-100">
+                          <div className="card-body">
+                            <h6 className="fw-bold mb-2">{getCategoryLabel(category, gender)}</h6>
+                            <p className="text-muted small mb-3">
+                              {count} registration{count !== 1 ? "s" : ""}
+                            </p>
+                            <div className="d-flex flex-column gap-2">
+                              <div className="d-flex gap-2">
+                                <button
+                                  className="btn btn-info btn-sm flex-fill"
+                                  onClick={() => generateCategoryPDF(category, gender, true)}
+                                  disabled={count === 0}
+                                  title="View PDF in new tab"
+                                >
+                                  <i className="bi bi-eye me-1"></i>View PDF
+                                </button>
+                                <button
+                                  className="btn btn-success btn-sm flex-fill"
+                                  onClick={() => generateCategoryPDF(category, gender, false)}
+                                  disabled={count === 0}
+                                  title="Download PDF file"
+                                >
+                                  <i className="bi bi-download me-1"></i>Download PDF
+                                </button>
+                              </div>
+                              <button
+                                className="btn btn-warning btn-sm w-100"
+                                onClick={() => generateCategoryExcel(category, gender)}
+                                disabled={count === 0}
+                                title="Download Excel file"
+                              >
+                                <i className="bi bi-file-earmark-excel me-1"></i>Download Excel
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  });
+                }
               })}
             </div>
             {filteredRegistrations.length === 0 && (

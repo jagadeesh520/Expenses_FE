@@ -43,10 +43,6 @@ export default function RegistrationList() {
       const result = await res.json();
       if (result.success) {
         console.log(`Received ${result.data.length} total registrations from API`);
-        // #region agent log
-        const giftsCount = result.data.filter((item) => item.type === "gift" || (!item.uniqueId && !item.dtcAttended && !item.recommendedByRole && !item.arrivalTime && item.transactionId && item.amountPaid)).length;
-        fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrationList.jsx:fetchList',message:'Registrations fetched',data:{totalRecords:result.data.length,giftsCount:giftsCount,firstRecordType:result.data[0]?.type,firstRecordHasUniqueId:!!result.data[0]?.uniqueId},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'F'})}).catch(()=>{});
-        // #endregion
         setRecords(result.data);
       }
     } catch (err) {
@@ -97,43 +93,19 @@ export default function RegistrationList() {
 
   // Helper function to identify gifts (same logic as OfferingsList.jsx)
   const isGift = (item) => {
-    // #region agent log
-    const checkResults = {
-      hasTypeGift: item.type === "gift",
-      typeValue: item.type,
-      fullName: item.fullName || item.name || "",
-      hasPurpose: !!item.purpose,
-      hasTransactionId: !!item.transactionId,
-      hasAmountPaid: !!item.amountPaid,
-      hasUniqueId: !!item.uniqueId,
-      hasDtcAttended: !!item.dtcAttended,
-      hasRecommendedByRole: !!item.recommendedByRole,
-      hasArrivalTime: !!item.arrivalTime
-    };
-    // #endregion
-
     // Primary: Check if type field is "gift"
     if (item.type === "gift") {
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrationList.jsx:isGift',message:'Gift identified by type field',data:{...checkResults,result:true,reason:'type===gift'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       return true;
     }
     
     // Fallback 1: Check if fullName or name indicates non-registered gift
     const name = item.fullName || item.name || "";
     if (name === "Gift - Non-Registered") {
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrationList.jsx:isGift',message:'Gift identified by name pattern',data:{...checkResults,result:true,reason:'name===Gift - Non-Registered'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       return true;
     }
     
     // Fallback 2: Check if purpose field exists (gifts have this optional field)
     if (item.purpose) {
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrationList.jsx:isGift',message:'Gift identified by purpose field',data:{...checkResults,result:true,reason:'hasPurpose'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       return true;
     }
     
@@ -143,15 +115,9 @@ export default function RegistrationList() {
     const lacksRegistrationFields = !item.uniqueId && !item.dtcAttended && !item.recommendedByRole && !item.arrivalTime;
     
     if (hasGiftFields && lacksRegistrationFields) {
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrationList.jsx:isGift',message:'Gift identified by field pattern',data:{...checkResults,result:true,reason:'hasGiftFields&&lacksRegistrationFields'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       return true;
     }
     
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegistrationList.jsx:isGift',message:'Not identified as gift',data:{...checkResults,result:false,reason:'noMatch'},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     return false;
   };
 
