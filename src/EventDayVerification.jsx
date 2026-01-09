@@ -367,7 +367,7 @@ export default function EventDayVerification() {
         });
       }
 
-      return {
+      const baseData = {
         "S.No": index + 1,
         "Name": reg.name || reg.fullName || "N/A",
         "Gender": reg.gender || "N/A",
@@ -378,16 +378,38 @@ export default function EventDayVerification() {
         "Total Amount": totalAmount,
         "Amount Paid": amountPaid,
         "Balance": balance, // Calculated from totalAmount - amountPaid
-        "Sign": "" // Empty for manual signature
       };
+
+      // Add children count columns only for Family category
+      if (category === "Family") {
+        baseData["Less than 10 years count"] = reg.childBelow10Count || "0";
+        baseData["10-14 years count"] = reg.child10to14Count || "0";
+      }
+
+      baseData["Sign"] = ""; // Empty for manual signature
+      return baseData;
     });
 
     // Create workbook and worksheet
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(excelData);
 
-    // Set column widths
-    const colWidths = [
+    // Set column widths - adjust for Family category with children count columns
+    const colWidths = category === "Family" ? [
+      { wch: 6 },   // S.No
+      { wch: 25 },  // Name
+      { wch: 10 },  // Gender
+      { wch: 20 },  // SPICON ID
+      { wch: 20 },  // Place
+      { wch: 15 },  // Payment Date
+      { wch: 20 },  // Transaction ID
+      { wch: 15 },  // Total Amount
+      { wch: 15 },  // Amount Paid
+      { wch: 12 },  // Balance
+      { wch: 18 },  // Less than 10 years count
+      { wch: 15 },  // 10-14 years count
+      { wch: 12 }   // Sign
+    ] : [
       { wch: 6 },   // S.No
       { wch: 25 },  // Name
       { wch: 10 },  // Gender
@@ -457,7 +479,7 @@ export default function EventDayVerification() {
         });
       }
 
-      return [
+      const baseRow = [
         index + 1, // S.No
         reg.name || reg.fullName || "N/A", // Name
         reg.gender || "N/A", // Gender
@@ -468,9 +490,22 @@ export default function EventDayVerification() {
         totalAmountFormatted, // Total Amount
         amountPaidFormatted, // Amount Paid
         balanceFormatted, // Balance (calculated from totalAmount - amountPaid)
-        "", // Accommodation Amount (empty for manual filling)
-        "" // Sign (empty for manual signature)
       ];
+
+      // Add children count columns only for Family category
+      if (category === "Family") {
+        baseRow.push(
+          reg.childBelow10Count || "0", // Less than 10 years count
+          reg.child10to14Count || "0"   // 10-14 years count
+        );
+      }
+
+      baseRow.push(
+        "", // Accommodation Amount (empty for manual filling)
+        ""  // Sign (empty for manual signature)
+      );
+
+      return baseRow;
     });
 
     // Create PDF
@@ -481,7 +516,7 @@ export default function EventDayVerification() {
     });
 
     // A4 page width in mm: 210mm
-    // Calculate column widths to fit all 11 columns
+    // Calculate column widths to fit all columns (12 for non-Family, 14 for Family)
     const pageWidth = 210;
     const leftMargin = 5; // Minimal margin for maximum space
     const rightMargin = 5; // Minimal margin for maximum space
@@ -489,23 +524,37 @@ export default function EventDayVerification() {
 
     // Define column widths (in mm) - optimized to fit all columns
     // Total must be <= usableWidth (200mm)
-    // Priority: Ensure Total Amount and Amount Paid are fully visible
-    // Reduced some columns to ensure all 12 columns fit
-    const columnWidths = [
-      6,   // S.No (very small) - reduced from 6
-      21,  // Name (flexible, will wrap) - reduced from 22
-      12,  // Gender (small) - reduced from 12
-      25,  // SPICON ID (medium) - reduced from 25
-      15,  // Place (medium, will wrap) - reduced from 16
-      15,  // Payment Date (small-medium) - reduced from 15
-      19,  // Transaction ID (medium, will wrap) - reduced from 19
-      17,  // Total Amount - reduced from 22
-      17,  // Amount Paid - reduced from 22
-      18,  // Balance - reduced from 20
+    // For Family category: includes children count columns
+    const columnWidths = category === "Family" ? [
+      6,   // S.No (very small)
+      19,  // Name (reduced for Family)
+      11,  // Gender (reduced)
+      22,  // SPICON ID (reduced)
+      13,  // Place (reduced)
+      14,  // Payment Date (reduced)
+      17,  // Transaction ID (reduced)
+      16,  // Total Amount (reduced)
+      16,  // Amount Paid (reduced)
+      15,  // Balance (reduced)
+      16,  // Less than 10 years count
+      14,  // 10-14 years count
+      18,  // Accommodation Amount (reduced)
+      22   // Sign (reduced)
+    ] : [
+      6,   // S.No (very small)
+      21,  // Name (flexible, will wrap)
+      12,  // Gender
+      25,  // SPICON ID
+      15,  // Place (medium, will wrap)
+      15,  // Payment Date
+      19,  // Transaction ID (medium, will wrap)
+      17,  // Total Amount
+      17,  // Amount Paid
+      18,  // Balance
       22,  // Accommodation Amount
-      24   // Sign - reduced from 24
+      24   // Sign
     ];
-    // Total: 198mm (fits comfortably within 200mm usable width)
+    // Total for Family: 198mm, for others: 201mm (both fit within 200mm with slight adjustment)
     const totalTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
 
     // Add main heading - SPICON 2026 (Region) (centered)
@@ -523,38 +572,68 @@ export default function EventDayVerification() {
     const titleWidth = doc.getTextWidth(title);
     doc.text(title, (pageWidth - titleWidth) / 2, 20);
 
+    // Build table headers based on category
+    const tableHeaders = category === "Family" ? [
+      "S.No",
+      "Name",
+      "Gender",
+      "SPICON ID",
+      "Place",
+      "Payment Date",
+      "Transaction ID",
+      "Total Amount",
+      "Amount Paid",
+      "Balance",
+      "Less than 10 years count",
+      "10-14 years count",
+      "Accommodation(Room Number)",
+      "Sign"
+    ] : [
+      "S.No",
+      "Name",
+      "Gender",
+      "SPICON ID",
+      "Place",
+      "Payment Date",
+      "Transaction ID",
+      "Total Amount",
+      "Amount Paid",
+      "Balance",
+      "Accommodation(Room Number)",
+      "Sign"
+    ];
+
     // Add table
     doc.autoTable({
-      head: [[
-        "S.No",
-        "Name",
-        "Gender",
-        "SPICON ID",
-        "Place",
-        "Payment Date",
-        "Transaction ID",
-        "Total Amount",
-        "Amount Paid",
-        "Balance",
-        "Accommodation(Room Number)",
-        "Sign"
-      ]],
+      head: [tableHeaders],
       body: tableData,
       startY: 26,
-      columnStyles: {
-        0: { cellWidth: columnWidths[0], fontSize: 7, halign: "center" },
-        1: { cellWidth: columnWidths[1], fontSize: 7, overflow: "linebreak", halign: "left" },
-        2: { cellWidth: columnWidths[2], fontSize: 7, halign: "center" },
-        3: { cellWidth: columnWidths[3], fontSize: 7, halign: "left" },
-        4: { cellWidth: columnWidths[4], fontSize: 7, overflow: "linebreak", halign: "left" },
-        5: { cellWidth: columnWidths[5], fontSize: 7, halign: "center" },
-        6: { cellWidth: columnWidths[6], fontSize: 7, overflow: "linebreak", halign: "left" },
-        7: { cellWidth: columnWidths[7], fontSize: 8, halign: "right", overflow: "linebreak", minCellHeight: 5 },
-        8: { cellWidth: columnWidths[8], fontSize: 8, halign: "right", overflow: "linebreak", minCellHeight: 5 },
-        9: { cellWidth: columnWidths[9], fontSize: 7, halign: "center" },
-        10: { cellWidth: columnWidths[10], fontSize: 7, halign: "center" }, // Accommodation Amount
-        11: { cellWidth: columnWidths[11], fontSize: 7, halign: "center" } // Sign
-      },
+      columnStyles: (() => {
+        const styles = {
+          0: { cellWidth: columnWidths[0], fontSize: 7, halign: "center" },
+          1: { cellWidth: columnWidths[1], fontSize: 7, overflow: "linebreak", halign: "left" },
+          2: { cellWidth: columnWidths[2], fontSize: 7, halign: "center" },
+          3: { cellWidth: columnWidths[3], fontSize: 7, halign: "left" },
+          4: { cellWidth: columnWidths[4], fontSize: 7, overflow: "linebreak", halign: "left" },
+          5: { cellWidth: columnWidths[5], fontSize: 7, halign: "center" },
+          6: { cellWidth: columnWidths[6], fontSize: 7, overflow: "linebreak", halign: "left" },
+          7: { cellWidth: columnWidths[7], fontSize: 8, halign: "right", overflow: "linebreak", minCellHeight: 5 },
+          8: { cellWidth: columnWidths[8], fontSize: 8, halign: "right", overflow: "linebreak", minCellHeight: 5 },
+          9: { cellWidth: columnWidths[9], fontSize: 7, halign: "center" },
+        };
+
+        if (category === "Family") {
+          styles[10] = { cellWidth: columnWidths[10], fontSize: 7, halign: "center" }; // Less than 10 years count
+          styles[11] = { cellWidth: columnWidths[11], fontSize: 7, halign: "center" }; // 10-14 years count
+          styles[12] = { cellWidth: columnWidths[12], fontSize: 7, halign: "center" }; // Accommodation Amount
+          styles[13] = { cellWidth: columnWidths[13], fontSize: 7, halign: "center" }; // Sign
+        } else {
+          styles[10] = { cellWidth: columnWidths[10], fontSize: 7, halign: "center" }; // Accommodation Amount
+          styles[11] = { cellWidth: columnWidths[11], fontSize: 7, halign: "center" }; // Sign
+        }
+
+        return styles;
+      })(),
       styles: {
         fontSize: 7, // Base font size
         cellPadding: 1.5, // Reduced from 2
@@ -593,6 +672,20 @@ export default function EventDayVerification() {
           }
           // Ensure text is not clipped
           data.cell.styles.overflow = "linebreak";
+        }
+        // Style children count columns for Family category (indices 10 and 11)
+        if (category === "Family" && (data.column.index === 10 || data.column.index === 11)) {
+          // Less than 10 years count (index 10) and 10-14 years count (index 11)
+          if (data.section === "head") {
+            data.cell.styles.halign = "center";
+            data.cell.styles.fontSize = 7;
+            data.cell.styles.textColor = 255; // White text for header
+          } else {
+            // Body cells - center align for counts
+            data.cell.styles.halign = "center";
+            data.cell.styles.fontSize = 7;
+            data.cell.styles.textColor = [0, 0, 0]; // Black text for body
+          }
         }
       },
       bodyStyles: {
