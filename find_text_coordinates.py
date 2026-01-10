@@ -15,7 +15,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 # Template image path
-TEMPLATE_IMAGE_PATH = r"C:\Users\syedn\Desktop (1)\projects\Expenses\Expenses_FE\WhatsApp Image 2026-01-08 at 19.41.40.jpeg"
+TEMPLATE_IMAGE_PATH = r"C:\Users\syedn\Desktop (1)\projects\Expenses\Expenses_FE\SPICON ID WEST NEW copy.jpg"
 
 class CoordinateFinder:
     def __init__(self, image_path):

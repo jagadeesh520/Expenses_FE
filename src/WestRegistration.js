@@ -58,7 +58,7 @@ export default function SPICONRegistration() {
   const REGION_NAME = "West Rayalaseema";
 
   // --- Registration Status ---
-  const REGISTRATIONS_CLOSED = false; // Set to true to close registrations
+  const REGISTRATIONS_CLOSED = true; // Set to true to close registrations
 
   const handle = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

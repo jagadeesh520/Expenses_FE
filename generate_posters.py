@@ -15,7 +15,7 @@ import re
 # CONFIGURATION
 # =============================================================================
 
-TEMPLATE_IMAGE_PATH = r"C:\Users\syedn\Desktop (1)\projects\Expenses\Expenses_FE\WhatsApp Image 2026-01-08 at 19.41.40.jpeg"
+TEMPLATE_IMAGE_PATH = r"C:\Users\syedn\Desktop (1)\projects\Expenses\Expenses_FE\SPICON ID WEST NEW copy.jpg"
 CSV_DATA_PATH = r"C:\Users\syedn\Desktop (1)\projects\Expenses\Expenses_FE\data\members.csv"
 FONT_PATH = r"C:\Users\syedn\Desktop (1)\projects\Expenses\Expenses_FE\fonts\Roboto-Bold.ttf"
 OUTPUT_DIR = r"C:\Users\syedn\Desktop (1)\projects\Expenses\Expenses_FE\output_west_rayalaseema"
@@ -23,15 +23,28 @@ OUTPUT_DIR = r"C:\Users\syedn\Desktop (1)\projects\Expenses\Expenses_FE\output_w
 TARGET_REGION = "West Rayalaseema"
 
 # Font sizes
-FONT_SIZE_NAME = 40
-FONT_SIZE_PLACE = 40
+FONT_SIZE_NAME = 35
+FONT_SIZE_PLACE = 35
 
 # Text color – solid black (very visible on beige background)
-TEXT_COLOR = (0, 0, 0)
+TEXT_COLOR = (0, 0, 255)
 
-# ✅ FINAL FIXED COORDINATES (FOR YOUR IMAGE)
-NAME_POSITION = (250, 1323)
-PLACE_POSITION = (250, 1383)
+# ✅ UPDATED COORDINATES FOR NEW TEMPLATE "SPICON ID WEST NEW copy.jpg"
+# Calculated based on template dimensions and font metrics
+# Image dimensions: 886 x 1299 pixels
+# Font: Roboto-Bold, size 40
+# 
+# These coordinates position text after "Name:" and "Place:" labels
+# Calculated using font metrics (ascent adjustment for baseline alignment)
+# 
+# If text positioning needs adjustment:
+#   - Increase Y to move text down
+#   - Decrease Y to move text up
+#   - Adjust X (220) to move text left/right
+# 
+# To find exact coordinates interactively, run: python find_text_coordinates.py
+NAME_POSITION = (200, 1012)
+PLACE_POSITION = (200, 1078)
 
 # =============================================================================
 # HELPER FUNCTIONS
