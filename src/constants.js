@@ -2,9 +2,6 @@
 // Update this IP address when the backend server IP changes
 // Try localhost first if backend is on same machine, otherwise use the network IP
 export const API_BASE_URL = "https://api.sjtechsol.com";
-// #region agent log
-fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'constants.js:API_BASE_URL-export',message:'API_BASE_URL constant exported',data:{apiBaseUrl:API_BASE_URL,type:typeof API_BASE_URL},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
-// #endregion
 
 
 
@@ -50,7 +47,4 @@ export const API_ENDPOINTS = {
   // Payment Validation
   VALIDATE_PAYMENTS: `${API_BASE_URL}/api/cashier/validate-payments`,
 };
-// #region agent log
-fetch('http://127.0.0.1:7245/ingest/9124ad60-cfbd-485f-a462-1b026806f018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'constants.js:API_ENDPOINTS-export',message:'API_ENDPOINTS object exported',data:{hasLogin:!!API_ENDPOINTS.LOGIN,loginUrl:API_ENDPOINTS.LOGIN,apiBaseUrl:API_BASE_URL},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
-// #endregion
 

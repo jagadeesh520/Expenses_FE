@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_ENDPOINTS } from "./constants";
-import logo from "./Assests/logo.PNG";
+import logo from "./Assets/logo.PNG";
 
 export default function OfferingsSpiconValidation() {
   const navigate = useNavigate();

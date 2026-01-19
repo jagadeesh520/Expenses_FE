@@ -1,9 +1,9 @@
 // src/EastRegistration.js (DESIGN-RESTORED)
 import React, { useState } from "react";
-import logo from "./Assests/logo.PNG";
+import logo from "./Assets/logo.PNG";
 import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS } from "./constants";
-import EastRayaUPI from "./Assests/eastrayalaseemaupi.png";
+import EastRayaUPI from "./Assets/eastrayalaseemaupi.png";
 
 export default function EastRegistration() {
   const navigate = useNavigate();

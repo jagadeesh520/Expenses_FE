@@ -5,9 +5,9 @@ import React, { useState } from "react";
 // Assuming useNavigate is available in the component's scope (requires import)
 import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS } from "./constants"; 
-import logo from "./Assests/logo.PNG";
-import WestGooglePayQR from "./Assests/west_googlepay.png";
-import WestPhonePayQR from "./Assests/west_phonepay.png";
+import logo from "./Assets/logo.PNG";
+import WestGooglePayQR from "./Assets/west_googlepay.png";
+import WestPhonePayQR from "./Assets/west_phonepay.png";
 
 
 export default function SPICONRegistration() {

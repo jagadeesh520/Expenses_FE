@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import logo from "./Assests/logo.PNG"; // Make sure path is correct
+import logo from "./Assets/logo.PNG"; // Make sure path is correct
 
 const RegistrationSuccess = () => {
   const location = useLocation();

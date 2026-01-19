@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_ENDPOINTS } from "./constants";
-import logo from "./Assests/logo.PNG";
-import EastRayaUPI from "./Assests/eastrayalaseemaupi.png";
-import WestGooglePayQR from "./Assests/west_googlepay.png";
-import WestPhonePayQR from "./Assests/west_phonepay.png";
+import logo from "./Assets/logo.PNG";
+import EastRayaUPI from "./Assets/eastrayalaseemaupi.png";
+import WestGooglePayQR from "./Assets/west_googlepay.png";
+import WestPhonePayQR from "./Assets/west_phonepay.png";
 
 export default function OfferingsForm() {
   const navigate = useNavigate();

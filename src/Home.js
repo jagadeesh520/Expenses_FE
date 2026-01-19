@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "./Assests/logo.PNG";
+import logo from "./Assets/logo.PNG";
 
 export default function Home() {
   const [region, setRegion] = useState("");

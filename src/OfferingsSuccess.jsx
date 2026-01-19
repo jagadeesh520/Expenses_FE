@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import logo from "./Assests/logo.PNG";
+import logo from "./Assets/logo.PNG";
 
 const OfferingsSuccess = () => {
   const location = useLocation();

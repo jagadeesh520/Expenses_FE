@@ -38,8 +38,11 @@ import EventDayVerification from "./EventDayVerification";
 import PendingPayment from "./PendingPayment";
 
 function App() {
+  // For homepage: ".", basename should be empty string for root deployment
+  const basename = process.env.PUBLIC_URL === "." ? "" : (process.env.PUBLIC_URL || "");
+  
   return (
-    <Router>
+    <Router basename={basename}>
       <Routes>
 
         {/* Public Routes */}
@@ -56,7 +59,6 @@ function App() {
         {/* Registrar Pages */}
         <Route path="/registrar-dashboard" element={<RegistrarDashboard />} /> {/* Post-login dashboard */}
         <Route path="/registrations" element={<RegistrationList />} /> {/* Approval page */}
-        <Route path="/statistics" element={<Statistics />} /> {/* Statistics page */}
         <Route path="/payment-requests" element={<PaymentRequestList />} /> {/* Payment requests for registrar */}
         <Route path="/registrar/spicon-reports" element={<SpiconReports />} /> {/* SPICON Reports */}
 
@@ -75,9 +77,6 @@ function App() {
 
         {/* Cashier Pages */}
         <Route path="/cashier-payment-requests" element={<CashierPaymentRequests />} />
-
-        {/* Chairperson/Admin Pages */}
-        <Route path="/view-payment-requests" element={<ViewAllPaymentRequests />} />
 
         {/* View Payment Requests (for Chairperson, Registrar, Coordinator, LAC Convener) */}
         <Route path="/view-payment-requests" element={<ViewPaymentRequests />} />

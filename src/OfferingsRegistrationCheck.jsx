@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import logo from "./Assests/logo.PNG";
+import logo from "./Assets/logo.PNG";
 
 export default function OfferingsRegistrationCheck() {
   const navigate = useNavigate();

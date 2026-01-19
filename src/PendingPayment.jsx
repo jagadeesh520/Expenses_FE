@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_ENDPOINTS } from "./constants";
-import logo from "./Assests/logo.PNG";
-import EastRayaUPI from "./Assests/eastrayalaseemaupi.png";
-import WestGooglePayQR from "./Assests/west_googlepay.png";
-import WestPhonePayQR from "./Assests/west_phonepay.png";
+import logo from "./Assets/logo.PNG";
+import EastRayaUPI from "./Assets/eastrayalaseemaupi.png";
+import WestGooglePayQR from "./Assets/west_googlepay.png";
+import WestPhonePayQR from "./Assets/west_phonepay.png";
 
 // Pricing function based on region and group type (reused from TreasurerSummary)
 const getTotalAmount = (region, groupType, maritalStatus, spouseAttending) => {
