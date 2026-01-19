@@ -21,6 +21,7 @@ import RegistrarDashboard from "./RegistrarDashboard";
 import Statistics from "./Statistics";
 import DistrictPlacePeopleDetails from "./DistrictPlacePeopleDetails";
 import PaymentAbstract from "./PaymentAbstract";
+import SpiconReports from "./SpiconReports";
 import OfferingsRegionSelection from "./OfferingsRegionSelection";
 import OfferingsRegistrationCheck from "./OfferingsRegistrationCheck";
 import OfferingsSpiconValidation from "./OfferingsSpiconValidation";
@@ -32,6 +33,7 @@ import TreasurerApprovedRequests from "./TreasurerApprovedRequests";
 import TreasurerSummary from "./TreasurerSummary";
 import TreasurerRegionSelection from "./TreasurerRegionSelection";
 import WorkerDisbursements from "./WorkerDisbursements";
+import WorkerRefunds from "./WorkerRefunds";
 import EventDayVerification from "./EventDayVerification";
 import PendingPayment from "./PendingPayment";
 
@@ -56,6 +58,7 @@ function App() {
         <Route path="/registrations" element={<RegistrationList />} /> {/* Approval page */}
         <Route path="/statistics" element={<Statistics />} /> {/* Statistics page */}
         <Route path="/payment-requests" element={<PaymentRequestList />} /> {/* Payment requests for registrar */}
+        <Route path="/registrar/spicon-reports" element={<SpiconReports />} /> {/* SPICON Reports */}
 
         {/* Coordinator/LAC Convener Pages */}
         <Route path="/create-payment-request" element={<PaymentRequestForm />} />
@@ -68,6 +71,7 @@ function App() {
         <Route path="/treasurer/approved-requests" element={<TreasurerApprovedRequests />} />
         <Route path="/treasurer/summary" element={<TreasurerSummary />} />
         <Route path="/treasurer/worker-disbursements" element={<WorkerDisbursements />} />
+        <Route path="/treasurer/worker-refunds" element={<WorkerRefunds />} />
 
         {/* Cashier Pages */}
         <Route path="/cashier-payment-requests" element={<CashierPaymentRequests />} />
